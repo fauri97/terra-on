@@ -1,0 +1,6 @@
+@TerraON.API_HostAddress = http://localhost:5078
+
+GET {{TerraON.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
