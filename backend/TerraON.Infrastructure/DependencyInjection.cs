@@ -11,6 +11,7 @@ using TerraON.Infrastructure.Security.Tokens.Access;
 using TerraON.Infrastructure.Services.LoggedUser;
 using TerraON.Domain.Repositories.Users;
 using TerraON.Infrastructure.DataAccess.Repositories;
+using TerraON.Domain.Repositories;
 
 namespace TerraON.Infrastructure
 {
@@ -27,7 +28,10 @@ namespace TerraON.Infrastructure
 
         private static void AddRepositories(IServiceCollection services)
         {
+            services.AddScoped<IUnityOfWork, UnityOfWork>();
+
             services.AddScoped<IUserReadOnlyRepository, UsersRepository>();
+            services.AddScoped<IUserWriteOnlyRepository, UsersRepository>();
         }
 
         private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
