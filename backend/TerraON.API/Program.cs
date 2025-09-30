@@ -1,9 +1,13 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
 using System.Globalization;
 using TerraON.API.Converters;
 using TerraON.API.Filters;
+using TerraON.API.Middlewares;
+using TerraON.API.Responses;
 using TerraON.API.Token;
+using TerraON.Application;
 using TerraON.Domain.Security.Tokens;
 using TerraON.Infrastructure;
 using TerraON.Infrastructure.Extensions;
@@ -32,6 +36,27 @@ builder.Services.AddControllers(options =>
 {
     opt.JsonSerializerOptions.Converters.Add(new StringConverter());
 });
+
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(e => e.Value!.Errors.Count > 0)
+                .Select(e => $"{e.Key}: {string.Join(", ", e.Value!.Errors.Select(er => er.ErrorMessage))}");
+
+            var payload = new ResponseBase<string>
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "Erro de validação de modelo",
+                Data = string.Join(" | ", errors)
+            };
+
+            return new BadRequestObjectResult(payload);
+        };
+    });
+
 
 builder.Services.AddSwaggerGen(opt =>
 {
@@ -82,7 +107,7 @@ builder.Services.AddScoped<ApiExceptionFilter>();
 
 builder.Services.AddScoped<AuthenticatedUserFilter>();
 builder.Services.AddScoped<ITokenProvider, HttpContextTokenValue>();
-
+builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddInfra(builder.Configuration);
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
@@ -97,8 +122,11 @@ if (app.Environment.IsDevelopment())
 }
 app.UseHttpsRedirection();
 
+
 app.UseAuthorization();
 app.UseCors();
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.MapControllers();
 

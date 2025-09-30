@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TerraON.Domain.Entities;
 
 namespace TerraON.Infrastructure.DataAccess
@@ -9,8 +10,36 @@ namespace TerraON.Infrastructure.DataAccess
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+
             ConfigureUser(modelBuilder);
+
+
+            var dtConverter = new ValueConverter<DateTime, DateTime>(
+                v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+            var ndtConverter = new ValueConverter<DateTime?, DateTime?>(
+                v => v.HasValue ? (v.Value.Kind == DateTimeKind.Utc ? v : v.Value.ToUniversalTime()) : v,
+                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var prop in entity.GetProperties())
+                {
+                    if (prop.ClrType == typeof(DateTime))
+                    {
+                        prop.SetValueConverter(dtConverter);
+                        prop.SetColumnType("timestamp with time zone");
+                    }
+                    else if (prop.ClrType == typeof(DateTime?))
+                    {
+                        prop.SetValueConverter(ndtConverter);
+                        prop.SetColumnType("timestamp with time zone");
+                    }
+                }
+            }
+
+            base.OnModelCreating(modelBuilder);
         }
 
         private static void ConfigureUser(ModelBuilder modelBuilder)
