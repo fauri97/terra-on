@@ -7,6 +7,10 @@ namespace TerraON.Infrastructure.DataAccess
     public class TerraONDbContext(DbContextOptions options) : DbContext(options)
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<Report> Reports { get; set; }
+        public DbSet<Image> Images { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<Like> Likes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
