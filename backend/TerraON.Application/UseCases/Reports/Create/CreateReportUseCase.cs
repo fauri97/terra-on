@@ -23,7 +23,7 @@ namespace TerraON.Application.UseCases.Reports.Create
             throw new NotImplementedException();
         }
 
-        private async Task Validate(RequestCreateReportJson request)
+        private void Validate(RequestCreateReportJson request)
         {
             var validator = new CreateReportValidator();
             var result = validator.Validate(request);

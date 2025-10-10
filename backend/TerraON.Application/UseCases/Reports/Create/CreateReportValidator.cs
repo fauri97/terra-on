@@ -4,9 +4,9 @@ using TerraON.Exception;
 
 namespace TerraON.Application.UseCases.Reports.Create
 {
-    public class ICreateReportValidator : AbstractValidator<RequestCreateReportJson>
+    public class CreateReportValidator : AbstractValidator<RequestCreateReportJson>
     {
-        public ICreateReportValidator() { 
+        public CreateReportValidator() { 
             RuleFor(x => x.Description)
                 .NotEmpty().WithMessage(ResourceMessagesExceptions.REPORT_CONTENT_NOT_EMPTY)
                 .MaximumLength(3000).WithMessage(ResourceMessagesExceptions.REPORT_MAX_LENGTH);
