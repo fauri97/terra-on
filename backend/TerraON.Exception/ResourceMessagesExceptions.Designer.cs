@@ -131,5 +131,32 @@ namespace TerraON.Exception {
                 return ResourceManager.GetString("PHONE_NUMBER_INVALID", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a O campo de conteúdo report, não pode estar vazio..
+        /// </summary>
+        public static string REPORT_CONTENT_NOT_EMPTY {
+            get {
+                return ResourceManager.GetString("REPORT_CONTENT_NOT_EMPTY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Denuncia não pode ter mais que 3000 caracteres.
+        /// </summary>
+        public static string REPORT_MAX_LENGTH {
+            get {
+                return ResourceManager.GetString("REPORT_MAX_LENGTH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a ID do usuário inválido..
+        /// </summary>
+        public static string USER_ID_INVALID {
+            get {
+                return ResourceManager.GetString("USER_ID_INVALID", resourceCulture);
+            }
+        }
     }
 }

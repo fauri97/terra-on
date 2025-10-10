@@ -141,4 +141,13 @@
   <data name="PHONE_NUMBER_INVALID" xml:space="preserve">
     <value>O campo número de telefone está inválido.</value>
   </data>
+  <data name="REPORT_CONTENT_NOT_EMPTY" xml:space="preserve">
+    <value>O campo de conteúdo report, não pode estar vazio.</value>
+  </data>
+  <data name="REPORT_MAX_LENGTH" xml:space="preserve">
+    <value>Denuncia não pode ter mais que 3000 caracteres</value>
+  </data>
+  <data name="USER_ID_INVALID" xml:space="preserve">
+    <value>ID do usuário inválido.</value>
+  </data>
 </root>

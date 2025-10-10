@@ -1,10 +1,9 @@
-﻿namespace TerraON.Domain.Entities
+﻿namespace TerraON.Application.UseCases.Reports.Create.DTOs
 {
-    public class Report : EntityBase
+    public class RequestCreateReportJson
     {
         public string Description { get; set; } = string.Empty;
         public long AuthorId { get; set; }
-        public User Author { get; set; } = null!;
         public string Longitude { get; set; } = string.Empty;
         public string Latitude { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
@@ -12,8 +11,6 @@
         public string State { get; set; } = string.Empty;
         public string Bairro { get; set; } = string.Empty;
         public string CEP { get; set; } = string.Empty;
-        public ICollection<Image> Images { get; set; } = [];
-        public ICollection<Comment> Comments { get; set; } = [];
-        public ICollection<Like> Likes { get; set; } = [];
+        public List<string> ImagesBase64 { get; set; } = new();
     }
 }

@@ -12,6 +12,8 @@ using TerraON.Infrastructure.Services.LoggedUser;
 using TerraON.Domain.Repositories.Users;
 using TerraON.Infrastructure.DataAccess.Repositories;
 using TerraON.Domain.Repositories;
+using TerraON.Domain.Repositories.Reports;
+using TerraON.Domain.Repositories.Images;
 
 namespace TerraON.Infrastructure
 {
@@ -32,6 +34,10 @@ namespace TerraON.Infrastructure
 
             services.AddScoped<IUserReadOnlyRepository, UsersRepository>();
             services.AddScoped<IUserWriteOnlyRepository, UsersRepository>();
+
+            services.AddScoped<IReportWriteOnlyRepository, ReportsRepository>();
+
+            services.AddScoped<IImageWriteOnlyRepository, ImagesRepository>();
         }
 
         private static void AddDbContext(IServiceCollection services, IConfiguration configuration)

@@ -8,22 +8,26 @@ namespace TerraON.Infrastructure.Migrations.Versions
         public override void Up()
         {
             CreateTable("Reports")
-                .WithColumn("Title").AsString().NotNullable()
                 .WithColumn("Description").AsString(int.MaxValue).NotNullable()
                 .WithColumn("AuthorId").AsInt64().NotNullable().ForeignKey("Users", "Id")
                 .WithColumn("Longitude").AsString().NotNullable()
                 .WithColumn("Latitude").AsString().NotNullable()
-                .WithColumn("Address").AsString().NotNullable()
-                .WithColumn("City").AsString().NotNullable()
-                .WithColumn("State").AsString().NotNullable()
-                .WithColumn("Bairro").AsString().NotNullable()
-                .WithColumn("CEP").AsString().NotNullable();
+                .WithColumn("Address").AsString().Nullable()
+                .WithColumn("City").AsString().Nullable()
+                .WithColumn("State").AsString().Nullable()
+                .WithColumn("Bairro").AsString().Nullable()
+                .WithColumn("CEP").AsString().Nullable();
 
-            CreateTable("Images")
-                .WithColumn("Base64").AsString(int.MaxValue).NotNullable()
-                .WithColumn("OriginalFileName").AsString().NotNullable()
-                .WithColumn("ContentType").AsString().NotNullable()
+            Create.Table("Images")
+                .WithColumn("Id").AsInt64().PrimaryKey().Identity()
+                .WithColumn("Data").AsCustom("bytea").NotNullable()
+                .WithColumn("OriginalFileName").AsString(255).NotNullable()
+                .WithColumn("ContentType").AsString(100).NotNullable()
+                .WithColumn("SizeBytes").AsInt64().NotNullable()
+                .WithColumn("Sha256").AsString(64).Nullable()
                 .WithColumn("ReportId").AsInt64().NotNullable().ForeignKey("Reports", "Id");
+            Create.Index("IX_Images_ReportId").OnTable("Images").OnColumn("ReportId");
+            Create.Index("IX_Images_Sha256").OnTable("Images").OnColumn("Sha256");
 
             CreateTable("Comments")
                 .WithColumn("Content").AsString(int.MaxValue).NotNullable()
