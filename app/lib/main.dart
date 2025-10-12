@@ -1,23 +1,45 @@
 import 'package:flutter/material.dart';
-import 'pages/login/login_page.dart';
+import 'theme/app_theme.dart';
+
+// Telas do fluxo de autenticação (PF)
+import 'pages/choose_login_page.dart';
+import 'auth/login_user_page.dart';
+import 'auth/register_user_page.dart';
+import 'auth/recover_password_page.dart';
+
+// Serviços (inicialização de singletons locais)
+import 'services/service_locator.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const TerraOnApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TerraOnApp extends StatelessWidget {
+  const TerraOnApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'TerraON',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF1B5E20),
+      debugShowCheckedModeBanner: false,
+      theme: themeLight(),
+      darkTheme: themeDark(),
+      themeMode: ThemeMode.light,
+
+      initialRoute: '/choose-login',
+
+      routes: {
+        '/choose-login': (_) => const ChooseLoginPage(),
+        '/login-user': (_) => const LoginUserPage(),
+        '/register-user': (_) => const RegisterUserPage(),
+        '/recover': (_) => const RecoverPasswordPage(),
+      },
+
+      // Fallback: volta para a tela inicial do fluxo
+      onUnknownRoute: (_) => MaterialPageRoute(
+        builder: (_) => const ChooseLoginPage(),
       ),
-      home: const LoginPage(),
     );
   }
 }
