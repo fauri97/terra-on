@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 
-// Fluxo público
-import 'pages/choose_login_page.dart';
-import 'auth/login_user_page.dart';
-import 'auth/register_user_page.dart';
-import 'auth/recover_password_page.dart';
+// Tela alvo desta branch
+import 'reports/new_report_page.dart';
 
-// Serviços (mantém inicialização local)
+// Infra compartilhada usada pela UI
+import 'widgets/app_navbar.dart';
+import 'widgets/app_footer.dart';
 import 'services/service_locator.dart';
 
 void main() {
@@ -27,19 +26,16 @@ class TerraOnApp extends StatelessWidget {
       darkTheme: themeDark(),
       themeMode: ThemeMode.light,
 
-      // Início na tela de escolha de acesso
-      initialRoute: '/choose-login',
+      // Nesta branch, abrimos direto a Nova Denúncia
+      initialRoute: '/new-report',
 
       routes: {
-        '/choose-login': (_) => const ChooseLoginPage(),
-        '/login-user': (_) => const LoginUserPage(),
-        '/register-user': (_) => const RegisterUserPage(),
-        '/recover': (_) => const RecoverPasswordPage(),
+        '/new-report': (_) => const NewReportPage(),
       },
 
-      // Caso alguma rota ainda não exista
+      // Fallback: volta para a própria tela alvo desta branch
       onUnknownRoute: (_) => MaterialPageRoute(
-        builder: (_) => const ChooseLoginPage(),
+        builder: (_) => const NewReportPage(),
       ),
     );
   }
