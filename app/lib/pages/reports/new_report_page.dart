@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../widgets/app_navbar.dart';
-import '../widgets/app_footer.dart';
-import '../services/service_locator.dart';
-import '../services/report_service.dart';
+import '../../widgets/app_navbar.dart';
+import '../../widgets/app_footer.dart';
+import '../../services/service_locator.dart';
+import '../../services/report_service.dart';
 
 /// TerraON — NewReportPage
 ///
@@ -38,9 +38,9 @@ class _NewReportPageState extends State<NewReportPage> {
   // UF / Cidade (IBGE)
   List<String> _states = []; // nomes de estado ex.: "Rio Grande do Sul"
   List<String> _cities = []; // nomes de municípios
-  String? _stateName;        // Nome do estado selecionado
-  String? _uf;               // Sigla ex.: "RS"
-  String? _city;             // Nome da cidade selecionada
+  String? _stateName; // Nome do estado selecionado
+  String? _uf; // Sigla ex.: "RS"
+  String? _city; // Nome da cidade selecionada
   bool _loadingStates = false;
   bool _loadingCities = false;
 
@@ -96,7 +96,10 @@ class _NewReportPageState extends State<NewReportPage> {
               'Você ainda pode informar UF, cidade e bairro manualmente.',
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
             ],
           ),
         );
@@ -116,7 +119,10 @@ class _NewReportPageState extends State<NewReportPage> {
               'Você pode preencher manualmente.',
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
             ],
           ),
         );
@@ -127,7 +133,7 @@ class _NewReportPageState extends State<NewReportPage> {
 
     // Preenche UF e carrega cidades
     setState(() {
-      _uf = geo.uf;                         // ex.: "RS"
+      _uf = geo.uf; // ex.: "RS"
       _stateName = _guessStateFromUF(_uf!); // ex.: "Rio Grande do Sul"
       _loadingCities = true;
     });
@@ -142,20 +148,42 @@ class _NewReportPageState extends State<NewReportPage> {
 
     if (!quiet && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Localização aplicada: ${geo.city} - ${geo.uf}')),
+        SnackBar(
+          content: Text('Localização aplicada: ${geo.city} - ${geo.uf}'),
+        ),
       );
     }
   }
 
   String? _guessStateFromUF(String uf) {
     const map = {
-      'AC': 'Acre','AL':'Alagoas','AP':'Amapá','AM':'Amazonas','BA':'Bahia',
-      'CE':'Ceará','DF':'Distrito Federal','ES':'Espírito Santo','GO':'Goiás',
-      'MA':'Maranhão','MT':'Mato Grosso','MS':'Mato Grosso do Sul','MG':'Minas Gerais',
-      'PA':'Pará','PB':'Paraíba','PR':'Paraná','PE':'Pernambuco','PI':'Piauí',
-      'RJ':'Rio de Janeiro','RN':'Rio Grande do Norte','RS':'Rio Grande do Sul',
-      'RO':'Rondônia','RR':'Roraima','SC':'Santa Catarina','SP':'São Paulo',
-      'SE':'Sergipe','TO':'Tocantins',
+      'AC': 'Acre',
+      'AL': 'Alagoas',
+      'AP': 'Amapá',
+      'AM': 'Amazonas',
+      'BA': 'Bahia',
+      'CE': 'Ceará',
+      'DF': 'Distrito Federal',
+      'ES': 'Espírito Santo',
+      'GO': 'Goiás',
+      'MA': 'Maranhão',
+      'MT': 'Mato Grosso',
+      'MS': 'Mato Grosso do Sul',
+      'MG': 'Minas Gerais',
+      'PA': 'Pará',
+      'PB': 'Paraíba',
+      'PR': 'Paraná',
+      'PE': 'Pernambuco',
+      'PI': 'Piauí',
+      'RJ': 'Rio de Janeiro',
+      'RN': 'Rio Grande do Norte',
+      'RS': 'Rio Grande do Sul',
+      'RO': 'Rondônia',
+      'RR': 'Roraima',
+      'SC': 'Santa Catarina',
+      'SP': 'São Paulo',
+      'SE': 'Sergipe',
+      'TO': 'Tocantins',
     };
     return map[uf];
   }
@@ -195,7 +223,10 @@ class _NewReportPageState extends State<NewReportPage> {
   Future<void> _pickPhoto() async {
     if (kIsWeb) {
       // No Web, abre seletor de arquivo diretamente
-      final x = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1600);
+      final x = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+      );
       if (x == null) return;
       final bytes = await x.readAsBytes();
       setState(() {
@@ -239,9 +270,9 @@ class _NewReportPageState extends State<NewReportPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao obter imagem: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Falha ao obter imagem: $e')));
     }
   }
 
@@ -258,9 +289,9 @@ class _NewReportPageState extends State<NewReportPage> {
 
     // garante cidade válida
     if (_city == null || _city!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione a cidade.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Selecione a cidade.')));
       return;
     }
 
@@ -308,8 +339,9 @@ class _NewReportPageState extends State<NewReportPage> {
         }
       });
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Denúncia registrada: $id')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Denúncia registrada: $id')));
     }
   }
 
@@ -346,14 +378,17 @@ class _NewReportPageState extends State<NewReportPage> {
                       prefixIcon: Icon(Icons.category_outlined),
                     ),
                     items: _categoryLabels.entries
-                        .map((e) => DropdownMenuItem<ReportCategory>(
-                              value: e.key,
-                              child: Text(e.value),
-                            ))
+                        .map(
+                          (e) => DropdownMenuItem<ReportCategory>(
+                            value: e.key,
+                            child: Text(e.value),
+                          ),
+                        )
                         .toList(),
                     value: _category,
                     onChanged: (v) => setState(() => _category = v),
-                    validator: (v) => v == null ? 'Selecione uma categoria' : null,
+                    validator: (v) =>
+                        v == null ? 'Selecione uma categoria' : null,
                   ),
                   const SizedBox(height: 12),
 
@@ -369,7 +404,9 @@ class _NewReportPageState extends State<NewReportPage> {
                     title: const Text('Usar minha localização atual'),
                     subtitle: _resolvingLocation
                         ? const Text('Obtendo localização...')
-                        : const Text('Você pode editar manualmente se preferir'),
+                        : const Text(
+                            'Você pode editar manualmente se preferir',
+                          ),
                     secondary: const Icon(Icons.my_location),
                   ),
                   const SizedBox(height: 8),
@@ -400,7 +437,9 @@ class _NewReportPageState extends State<NewReportPage> {
                     validator: (v) {
                       // Se ainda está carregando ou não há UF, não valida agora
                       if (_loadingCities || _uf == null) return null;
-                      return (v == null || v.trim().isEmpty) ? 'Selecione a cidade' : null;
+                      return (v == null || v.trim().isEmpty)
+                          ? 'Selecione a cidade'
+                          : null;
                     },
                     decoration: const InputDecoration(
                       labelText: 'Cidade',
@@ -448,7 +487,11 @@ class _NewReportPageState extends State<NewReportPage> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.memory(_photoBytes!, fit: BoxFit.cover, height: 180),
+                            child: Image.memory(
+                              _photoBytes!,
+                              fit: BoxFit.cover,
+                              height: 180,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Align(

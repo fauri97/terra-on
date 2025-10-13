@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widgets/app_navbar.dart';
-import '../widgets/app_footer.dart';
-import '../services/service_locator.dart';
+import '../../widgets/app_navbar.dart';
+import '../../widgets/app_footer.dart';
+import '../../services/service_locator.dart';
 
 /// TerraON — LoginUserPage
 ///
@@ -43,7 +43,9 @@ class _LoginUserPageState extends State<LoginUserPage> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Falha no login. Verifique suas credenciais.')),
+        const SnackBar(
+          content: Text('Falha no login. Verifique suas credenciais.'),
+        ),
       );
     }
   }
@@ -96,7 +98,9 @@ class _LoginUserPageState extends State<LoginUserPage> {
                       labelText: 'Senha',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                        icon: Icon(
+                          _obscure ? Icons.visibility_off : Icons.visibility,
+                        ),
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                     ),
@@ -126,7 +130,9 @@ class _LoginUserPageState extends State<LoginUserPage> {
                     label: const Text('Entrar'),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      textStyle: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+                      textStyle: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
 
@@ -136,7 +142,8 @@ class _LoginUserPageState extends State<LoginUserPage> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () => Navigator.pushNamed(context, '/register-user'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/register-user'),
                           icon: const Icon(Icons.person_add_alt_1),
                           label: const Text('Criar conta'),
                         ),
@@ -144,7 +151,8 @@ class _LoginUserPageState extends State<LoginUserPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextButton.icon(
-                          onPressed: () => Navigator.pushNamed(context, '/choose-login'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/choose-login'),
                           icon: const Icon(Icons.visibility),
                           label: const Text('Entrar como visitante'),
                         ),

@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../services/service_locator.dart';
+import '../../services/service_locator.dart';
 
 /// TerraON — RegisterUserController
 ///
@@ -25,7 +25,7 @@ class RegisterUserController extends ChangeNotifier {
   List<String> states = [];
   List<String> cities = [];
   String? stateName; // "Rio Grande do Sul"
-  String? uf;        // "RS"
+  String? uf; // "RS"
   String? city;
 
   bool loadingStates = false;
@@ -40,13 +40,33 @@ class RegisterUserController extends ChangeNotifier {
 
   // Mapa fixo estado → UF (para inferência rápida)
   static const Map<String, String> _ufs = {
-    'Acre': 'AC','Alagoas':'AL','Amapá':'AP','Amazonas':'AM','Bahia':'BA',
-    'Ceará':'CE','Distrito Federal':'DF','Espírito Santo':'ES','Goiás':'GO',
-    'Maranhão':'MA','Mato Grosso':'MT','Mato Grosso do Sul':'MS','Minas Gerais':'MG',
-    'Pará':'PA','Paraíba':'PB','Paraná':'PR','Pernambuco':'PE','Piauí':'PI',
-    'Rio de Janeiro':'RJ','Rio Grande do Norte':'RN','Rio Grande do Sul':'RS',
-    'Rondônia':'RO','Roraima':'RR','Santa Catarina':'SC','São Paulo':'SP',
-    'Sergipe':'SE','Tocantins':'TO',
+    'Acre': 'AC',
+    'Alagoas': 'AL',
+    'Amapá': 'AP',
+    'Amazonas': 'AM',
+    'Bahia': 'BA',
+    'Ceará': 'CE',
+    'Distrito Federal': 'DF',
+    'Espírito Santo': 'ES',
+    'Goiás': 'GO',
+    'Maranhão': 'MA',
+    'Mato Grosso': 'MT',
+    'Mato Grosso do Sul': 'MS',
+    'Minas Gerais': 'MG',
+    'Pará': 'PA',
+    'Paraíba': 'PB',
+    'Paraná': 'PR',
+    'Pernambuco': 'PE',
+    'Piauí': 'PI',
+    'Rio de Janeiro': 'RJ',
+    'Rio Grande do Norte': 'RN',
+    'Rio Grande do Sul': 'RS',
+    'Rondônia': 'RO',
+    'Roraima': 'RR',
+    'Santa Catarina': 'SC',
+    'São Paulo': 'SP',
+    'Sergipe': 'SE',
+    'Tocantins': 'TO',
   };
 
   // === Ciclo de vida ===
@@ -126,7 +146,8 @@ class RegisterUserController extends ChangeNotifier {
   Future<String?> useMyLocation() async {
     final geo = await geoService.getCurrentCityAndState();
     if (geo.permissionDenied) return 'Permissão de localização negada';
-    if (geo.uf == null || geo.city == null) return 'Não foi possível detectar sua cidade';
+    if (geo.uf == null || geo.city == null)
+      return 'Não foi possível detectar sua cidade';
 
     uf = geo.uf;
     stateName = _ufs.keys.firstWhere(
@@ -146,7 +167,9 @@ class RegisterUserController extends ChangeNotifier {
     city = detected.isEmpty ? null : detected;
     notifyListeners();
 
-    return city != null ? 'Localização aplicada: ${geo.city} - ${geo.uf}' : null;
+    return city != null
+        ? 'Localização aplicada: ${geo.city} - ${geo.uf}'
+        : null;
   }
 
   // === Avatar ===
@@ -163,7 +186,7 @@ class RegisterUserController extends ChangeNotifier {
 
   Future<ImageSource?> _chooseSource() async {
     // UI dessa escolha é responsabilidade da página/Widget.
-   
+
     if (kIsWeb) return ImageSource.gallery;
     return ImageSource.gallery; // a Página pode passar a fonte desejada
   }

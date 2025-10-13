@@ -1,11 +1,12 @@
+import 'package:app/pages/explore_page.dart';
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 
 // Telas do fluxo de autenticação (PF)
 import 'pages/choose_login_page.dart';
-import 'auth/login_user_page.dart';
-import 'auth/register_user_page.dart';
-import 'auth/recover_password_page.dart';
+import 'pages/auth/login_user_page.dart';
+import 'pages/auth/register_user_page.dart';
+import 'pages/auth/recover_password_page.dart';
 
 // Serviços (inicialização de singletons locais)
 import 'services/service_locator.dart';
@@ -29,14 +30,11 @@ class TerraOnApp extends StatelessWidget {
 
       initialRoute: '/choose-login',
 
-      routes: {
-        '/explore': (_) => const ExplorePage(),
-      },
+      routes: {'/explore': (_) => const ExplorePage()},
 
       // Fallback: volta para a tela inicial do fluxo
-      onUnknownRoute: (_) => MaterialPageRoute(
-        builder: (_) => const ExplorePage(),
-      ),
+      onUnknownRoute: (_) =>
+          MaterialPageRoute(builder: (_) => const ExplorePage()),
     );
   }
 }

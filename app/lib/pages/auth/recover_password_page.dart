@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/app_navbar.dart';
-import '../widgets/app_footer.dart';
+import '../../widgets/app_navbar.dart';
+import '../../widgets/app_footer.dart';
 
 /// TerraON — RecoverPasswordPage
 ///
