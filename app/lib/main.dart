@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 
-// Fluxo público
+// Telas do fluxo de autenticação (PF)
 import 'pages/choose_login_page.dart';
 import 'auth/login_user_page.dart';
 import 'auth/register_user_page.dart';
 import 'auth/recover_password_page.dart';
 
-// Serviços (mantém inicialização local)
+// Serviços (inicialização de singletons locais)
 import 'services/service_locator.dart';
 
 void main() {
@@ -27,7 +27,6 @@ class TerraOnApp extends StatelessWidget {
       darkTheme: themeDark(),
       themeMode: ThemeMode.light,
 
-      // Início na tela de escolha de acesso
       initialRoute: '/choose-login',
 
       routes: {
@@ -37,7 +36,7 @@ class TerraOnApp extends StatelessWidget {
         '/recover': (_) => const RecoverPasswordPage(),
       },
 
-      // Caso alguma rota ainda não exista
+      // Fallback: volta para a tela inicial do fluxo
       onUnknownRoute: (_) => MaterialPageRoute(
         builder: (_) => const ChooseLoginPage(),
       ),
