@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 
-// Tela alvo desta branch
-import 'pages/explore_page.dart';
+// Telas do fluxo de autenticação (PF)
+import 'pages/choose_login_page.dart';
+import 'auth/login_user_page.dart';
+import 'auth/register_user_page.dart';
+import 'auth/recover_password_page.dart';
 
-// Infra compartilhada usada pela UI
-import 'widgets/app_navbar.dart';
-import 'widgets/app_footer.dart';
+// Serviços (inicialização de singletons locais)
 import 'services/service_locator.dart';
 
 void main() {
@@ -26,14 +27,13 @@ class TerraOnApp extends StatelessWidget {
       darkTheme: themeDark(),
       themeMode: ThemeMode.light,
 
-      // Nesta branch, abrimos direto a tela Explorar
-      initialRoute: '/explore',
+      initialRoute: '/choose-login',
 
       routes: {
         '/explore': (_) => const ExplorePage(),
       },
 
-      // Fallback: volta para a própria tela alvo desta branch
+      // Fallback: volta para a tela inicial do fluxo
       onUnknownRoute: (_) => MaterialPageRoute(
         builder: (_) => const ExplorePage(),
       ),
