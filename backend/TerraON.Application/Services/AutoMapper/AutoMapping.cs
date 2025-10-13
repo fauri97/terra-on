@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using TerraON.Application.UseCases.Reports.Create.DTOs;
 using TerraON.Application.UseCases.Users.Register.DTOs;
 using TerraON.Domain.Entities;
 
@@ -21,6 +22,12 @@ namespace TerraON.Application.Services.AutoMapper
                 {
                     d.NormalizedEmail = d.Email?.ToUpperInvariant();
                 });
+
+            CreateMap<RequestCreateReportJson, Report>()
+                .ForMember(d => d.Author, o => o.Ignore())
+                .ForMember(d => d.Images, o => o.Ignore())
+                .ForMember(d => d.Comments, o => o.Ignore())
+                .ForMember(d => d.Likes, o => o.Ignore());
         }
 
         private void DomainToResponse()
