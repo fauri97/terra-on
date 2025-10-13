@@ -30,12 +30,12 @@ class TerraOnApp extends StatelessWidget {
       initialRoute: '/choose-login',
 
       routes: {
-        '/new-report': (_) => const NewReportPage(),
+        '/explore': (_) => const ExplorePage(),
       },
 
       // Fallback: volta para a tela inicial do fluxo
       onUnknownRoute: (_) => MaterialPageRoute(
-        builder: (_) => const NewReportPage(),
+        builder: (_) => const ExplorePage(),
       ),
     );
   }
