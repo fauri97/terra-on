@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using TerraON.API.Responses;
@@ -9,74 +10,117 @@ using TerraON.Exception.ExceptionBase;
 
 namespace TerraON.API.Filters
 {
-    public class AuthenticatedUserFilter(IAccessTokenValidator accessTokenValidator, IUserReadOnlyRepository userRepository)
-        : IAsyncAuthorizationFilter
+    // Registre via services.AddScoped<AuthenticatedUserFilter>();
+    public class AuthenticatedUserFilter : IAsyncAuthorizationFilter
     {
-        private readonly IAccessTokenValidator _accessTokenValidator = accessTokenValidator;
-        private readonly IUserReadOnlyRepository _userRepository = userRepository;
+        private const string AuthScheme = "Bearer";
+        private readonly IAccessTokenValidator _accessTokenValidator;
+        private readonly IUserReadOnlyRepository _userRepository;
+        private readonly ILogger<AuthenticatedUserFilter> _logger;
+
+        public AuthenticatedUserFilter(
+            IAccessTokenValidator accessTokenValidator,
+            IUserReadOnlyRepository userRepository,
+            ILogger<AuthenticatedUserFilter> logger)
+        {
+            _accessTokenValidator = accessTokenValidator;
+            _userRepository = userRepository;
+            _logger = logger;
+        }
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             try
             {
-                var token = TokenOnRequest(context);
+                var token = ExtractBearerToken(context)
+                            ?? throw new TerraONException("Token não está presente na requisição");
 
+                // Confere assinatura/expiração e extrai o identificador do usuário
                 Guid userIdentifier = _accessTokenValidator.ValidadeAndGetUserIdentifier(token);
 
-                var exist = await _userRepository.GetByUserIdentifier(userIdentifier)
-                    ?? throw new TerraONException("Usuário sem permissão");
+                // Verifica existência/autorização do usuário
+                var user = await _userRepository.GetByUserIdentifier(userIdentifier);
+                if (user is null)
+                {
+                    // 403: token ok, mas usuário não tem permissão/registro
+                    context.Result = new ObjectResult(new ResponseBase<string>
+                    {
+                        StatusCode = StatusCodes.Status403Forbidden,
+                        Message = "Acesso negado",
+                        Data = "Usuário sem permissão"
+                    })
+                    { StatusCode = StatusCodes.Status403Forbidden };
+                    return;
+                }
 
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.NameIdentifier, userIdentifier.ToString()),
-                    new("Id", exist.Id.ToString()),
-                    new(ClaimTypes.Name, exist.Name)
+                    new("Id", user.Id.ToString()),
+                    new(ClaimTypes.Name, user.Name)
+                    // adicione roles/tenant/etc se desejar:
+                    // new(ClaimTypes.Role, "Admin")
                 };
 
-                var identity = new ClaimsIdentity(claims, "TarefasCustoms");
+                // AuthType apenas descritivo; pode usar "Bearer" para consistência
+                var identity = new ClaimsIdentity(claims, AuthScheme);
                 context.HttpContext.User = new ClaimsPrincipal(identity);
+
+                // útil pra handlers/serviços sem precisar reparsear claims
+                context.HttpContext.Items["UserIdentifier"] = userIdentifier;
             }
             catch (TerraONException ex)
             {
-                Console.WriteLine($"AuthenticatedUserFilter - {ex.Message}");
-                context.Result = new UnauthorizedObjectResult(new ResponseBase
+                _logger.LogWarning(ex, "Falha de autorização (domínio).");
+                context.Result = new UnauthorizedObjectResult(new ResponseBase<string>
                 {
-                    StatusCode = 401,
+                    StatusCode = StatusCodes.Status401Unauthorized,
                     Message = "Não autorizado",
-                    Data = ex.Message,
+                    Data = ex.Message
                 });
             }
-            catch (SecurityTokenExpiredException)
+            catch (SecurityTokenExpiredException ex)
             {
-                context.Result = new UnauthorizedObjectResult(new ResponseBase
+                _logger.LogInformation(ex, "Token expirado.");
+                context.HttpContext.Response.Headers["WWW-Authenticate"] =
+                    $"{AuthScheme} error=\"invalid_token\", error_description=\"token expired\"";
+
+                context.Result = new UnauthorizedObjectResult(new ResponseBase<string>
                 {
-                    StatusCode = 401,
-                    Message = "Token expirado"
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    Message = "Token expirado",
+                    Data = "O token de acesso expirou. Faça login novamente."
+                });
+            }
+            catch (SecurityTokenException ex)
+            {
+                _logger.LogWarning(ex, "Token inválido.");
+                context.HttpContext.Response.Headers["WWW-Authenticate"] =
+                    $"{AuthScheme} error=\"invalid_token\", error_description=\"invalid signature or malformed token\"";
+
+                context.Result = new UnauthorizedObjectResult(new ResponseBase<string>
+                {
+                    StatusCode = StatusCodes.Status401Unauthorized,
+                    Message = "Token inválido",
+                    Data = "Assinatura inválida ou token malformado."
                 });
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine($"Unhandled exception in AuthenticatedUserFilter: {ex.GetType().Name} - {ex.Message}");
+                _logger.LogError(ex, "Erro inesperado no AuthenticatedUserFilter.");
+                // Deixa propagar (gera 500) ou padronize um ProblemDetails aqui, se preferir
                 throw;
             }
         }
 
-        private static string TokenOnRequest(AuthorizationFilterContext context)
+        private static string? ExtractBearerToken(AuthorizationFilterContext context)
         {
-            var authentication = context.HttpContext.Request.Headers.Authorization.ToString();
+            var auth = context.HttpContext.Request.Headers.Authorization.ToString();
+            if (string.IsNullOrWhiteSpace(auth) || !auth.StartsWith($"{AuthScheme} ", StringComparison.OrdinalIgnoreCase))
+                return null;
 
-            if (string.IsNullOrWhiteSpace(authentication) || !authentication.StartsWith("Bearer "))
-            {
-                throw new TerraONException("Token não está presente na requisição");
-            }
-
-            var token = authentication["Bearer ".Length..].Trim();
-            if (string.IsNullOrEmpty(token))
-            {
-                throw new TerraONException("Token não está presente na requisição");
-            }
-
-            return token;
+            var token = auth.Substring($"{AuthScheme} ".Length).Trim();
+            return string.IsNullOrEmpty(token) ? null : token;
         }
     }
 }
