@@ -28,5 +28,10 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
             => await _dbContext.Users   
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.UserIdentifier == userIdentifier);
+
+        public async Task<bool> ExistActiveUserWithID(long id)
+            => await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Id == id && !u.IsDeleted);
     }
 }

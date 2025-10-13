@@ -61,6 +61,24 @@ namespace TerraON.Exception {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Conteúdo pode ter no máximo 350 letras..
+        /// </summary>
+        public static string CONTENT_MAX_LENGTH {
+            get {
+                return ResourceManager.GetString("CONTENT_MAX_LENGTH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Conteúdo não pode estar vazio..
+        /// </summary>
+        public static string CONTENT_NOT_EMPTY {
+            get {
+                return ResourceManager.GetString("CONTENT_NOT_EMPTY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a Email já registrado..
         /// </summary>
         public static string EMAIL_ALREDY_REGISTERED {
@@ -147,6 +165,15 @@ namespace TerraON.Exception {
         public static string REPORT_MAX_LENGTH {
             get {
                 return ResourceManager.GetString("REPORT_MAX_LENGTH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a ID do report está inválido.
+        /// </summary>
+        public static string REPORTID_INVALID {
+            get {
+                return ResourceManager.GetString("REPORTID_INVALID", resourceCulture);
             }
         }
         

@@ -61,23 +61,14 @@ namespace TerraON.Infrastructure.DataAccess
 
             e.HasKey(r => r.Id);
 
-            e.Property(r => r.Title)
-                .IsRequired()
-                .HasMaxLength(255);
-
-            // Description como TEXT
-            e.Property(r => r.Description)
-                .IsRequired()
-                .HasColumnType("text");
-
             e.Property(r => r.AuthorId)
                 .IsRequired();
 
             // Relacionamentos
-            e.HasOne<User>() // se não tiver navegação Author em Report
-             .WithMany()
-             .HasForeignKey(r => r.AuthorId)
-             .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(r => r.Author)
+                .WithMany()
+                .HasForeignKey(r => r.AuthorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             e.HasMany(r => r.Images)
              .WithOne(i => i.Report)
@@ -100,30 +91,6 @@ namespace TerraON.Infrastructure.DataAccess
             var e = modelBuilder.Entity<Image>();
             e.ToTable("Images");
 
-            e.HasKey(i => i.Id);
-
-            e.Property(i => i.Data)
-             .IsRequired()
-             .HasColumnType("bytea"); // Postgres binário
-
-            e.Property(i => i.OriginalFileName)
-             .IsRequired()
-             .HasMaxLength(255);
-
-            e.Property(i => i.ContentType)
-             .IsRequired()
-             .HasMaxLength(100);
-
-            e.Property(i => i.SizeBytes)
-             .IsRequired();
-
-            e.Property(i => i.Sha256)
-             .HasMaxLength(64);
-
-            e.Property(i => i.ReportId)
-             .IsRequired();
-
-            // FK
             e.HasOne(i => i.Report)
              .WithMany(r => r.Images)
              .HasForeignKey(i => i.ReportId)
@@ -135,25 +102,8 @@ namespace TerraON.Infrastructure.DataAccess
             var e = modelBuilder.Entity<Comment>();
             e.ToTable("Comments");
 
-            e.HasKey(c => c.Id);
-
-            // Content como TEXT
-            e.Property(c => c.Content)
-             .IsRequired()
-             .HasColumnType("text");
-
-            e.Property(c => c.IsHidden)
-             .IsRequired()
-             .HasDefaultValue(false);
-
-            e.Property(c => c.AuthorId)
-             .IsRequired();
-
-            e.Property(c => c.ReportId)
-             .IsRequired();
-
             // Relacionamentos
-            e.HasOne<User>() // caso não exista navegação Author em Comment
+            e.HasOne(r => r.Author)
              .WithMany()
              .HasForeignKey(c => c.AuthorId)
              .OnDelete(DeleteBehavior.Restrict);
@@ -169,15 +119,10 @@ namespace TerraON.Infrastructure.DataAccess
             var e = modelBuilder.Entity<Like>();
             e.ToTable("Likes");
 
-            // Chave composta para evitar duplicidade (um like por user/report)
             e.HasKey(l => new { l.UserId, l.ReportId });
 
-            e.Property(l => l.UserId).IsRequired();
-            e.Property(l => l.ReportId).IsRequired();
-
-
             // Relacionamentos
-            e.HasOne<User>()
+            e.HasOne(l => l.User)
              .WithMany()
              .HasForeignKey(l => l.UserId)
              .OnDelete(DeleteBehavior.Cascade);

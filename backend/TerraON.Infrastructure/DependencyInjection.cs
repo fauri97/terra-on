@@ -14,6 +14,7 @@ using TerraON.Infrastructure.DataAccess.Repositories;
 using TerraON.Domain.Repositories;
 using TerraON.Domain.Repositories.Reports;
 using TerraON.Domain.Repositories.Images;
+using TerraON.Domain.Repositories.Comments;
 
 namespace TerraON.Infrastructure
 {
@@ -36,8 +37,11 @@ namespace TerraON.Infrastructure
             services.AddScoped<IUserWriteOnlyRepository, UsersRepository>();
 
             services.AddScoped<IReportWriteOnlyRepository, ReportsRepository>();
+            services.AddScoped<IReportReadOnlyRepository, ReportsRepository>();
 
             services.AddScoped<IImageWriteOnlyRepository, ImagesRepository>();
+
+            services.AddScoped<ICommentWriteOnlyRepository, CommentsRepository>();
         }
 
         private static void AddDbContext(IServiceCollection services, IConfiguration configuration)

@@ -2,6 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using TerraON.Application.Services.AutoMapper;
 using TerraON.Application.Services.Cryptography;
+using TerraON.Application.UseCases.Comments.Create;
+using TerraON.Application.UseCases.Reports.Create;
+using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Users.Login;
 using TerraON.Application.UseCases.Users.Register;
 
@@ -31,6 +34,11 @@ namespace TerraON.Application
         {
             services.AddScoped<ICreateUserUseCase, CreateUserUseCase>();
             services.AddScoped<IDoLoginUseCase, DoLoginUseCase>();
+
+            services.AddScoped<ICreateReportUseCase, CreateReportUseCase>();
+            services.AddScoped<IGetReportUseCase, GetReportUseCase>();
+
+            services.AddScoped<ICreateCommentUseCase, CreateCommentUseCase>();
         }
     }
 }
