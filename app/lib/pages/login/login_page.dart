@@ -1,5 +1,9 @@
 import 'dart:ui';
+import 'package:app/app_router.dart';
+import 'package:app/core/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,12 +16,40 @@ class _LoginPageState extends State<LoginPage> {
   final _emailCtrl = TextEditingController();
   final _pwdCtrl = TextEditingController();
   bool _obscure = true;
+  bool _loading = false;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
     _pwdCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _doLogin() async {
+    final email = _emailCtrl.text.trim();
+    final pwd = _pwdCtrl.text;
+
+    if (email.isEmpty || pwd.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Preencha e-mail e senha.')));
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      // pega o AuthRepository via Provider
+      final auth = context.read<AuthRepository>();
+      await auth.login(email: email, password: pwd);
+      if (mounted) context.go(AppRouter.main);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao entrar: $e')));
+      print('Login error: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -107,6 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                             const SizedBox(height: 24),
+
                             // Campos
                             TextField(
                               controller: _emailCtrl,
@@ -154,13 +187,12 @@ class _LoginPageState extends State<LoginPage> {
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
-                                onPressed: () {
-                                  // TODO: navegar para fluxo de recuperação
-                                },
+                                onPressed: () {},
                                 child: const Text('Esqueci minha senha'),
                               ),
                             ),
                             const SizedBox(height: 8),
+
                             // Botão principal
                             SizedBox(
                               width: double.infinity,
@@ -173,14 +205,21 @@ class _LoginPageState extends State<LoginPage> {
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                 ),
-                                onPressed: () {
-                                  // TODO: acionar login (sem lógica aqui)
-                                },
-                                child: const Text('Entrar'),
+                                onPressed: _loading ? null : _doLogin,
+                                child: _loading
+                                    ? const SizedBox(
+                                        height: 18,
+                                        width: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text('Entrar'),
                               ),
                             ),
                             const SizedBox(height: 10),
-                            // Botão secundário (anônimo / visitante)
+
+                            // Visitante
                             SizedBox(
                               width: double.infinity,
                               child: OutlinedButton.icon(
@@ -193,14 +232,12 @@ class _LoginPageState extends State<LoginPage> {
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                 ),
-                                onPressed: () {
-                                  // TODO: continuar como visitante
-                                },
+                                onPressed: () => context.go(AppRouter.main),
                                 label: const Text('Continuar como visitante'),
                               ),
                             ),
                             const SizedBox(height: 12),
-                            // Termos/aviso
+
                             Text(
                               'Ao continuar, você concorda com os termos de uso e privacidade.',
                               textAlign: TextAlign.center,
@@ -220,22 +257,10 @@ class _LoginPageState extends State<LoginPage> {
             },
           ),
           // AppBar transparente
-          SafeArea(
+          const SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      // Opcional: Navigator.maybePop(context);
-                    },
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Row(),
             ),
           ),
         ],
@@ -285,10 +310,10 @@ class _Bubble extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: color,
-        boxShadow: const [
+        color: Colors.white10,
+        boxShadow: [
           BoxShadow(blurRadius: 40, spreadRadius: 10, color: Colors.black12),
         ],
       ),

@@ -1,40 +1,40 @@
-import 'package:app/pages/explore_page.dart';
+import 'package:app/core/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
-import 'theme/app_theme.dart';
+import 'package:provider/provider.dart';
+import 'core/tokens/token_storage.dart';
+import 'core/tokens/token_store.dart';
+import 'core/api_client.dart';
+import 'app_router.dart';
 
-// Telas do fluxo de autenticação (PF)
-import 'pages/choose_login_page.dart';
-import 'pages/auth/login_user_page.dart';
-import 'pages/auth/register_user_page.dart';
-import 'pages/auth/recover_password_page.dart';
-
-// Serviços (inicialização de singletons locais)
-import 'services/service_locator.dart';
-
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const TerraOnApp());
+
+  final storage = await DefaultTokenStorage.create();
+  final tokenStore = TokenStore(storage);
+  await tokenStore.init();
+
+  final authRepo = AuthRepository(tokenStore: tokenStore);
+  final apiClient = ApiClient.create(
+    tokenStore: tokenStore,
+    onUnauthorized: () => authRepo.refresh(),
+  );
+
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<TokenStore>.value(value: tokenStore),
+        Provider<AuthRepository>.value(value: authRepo),
+        Provider<ApiClient>.value(value: apiClient),
+      ],
+      child: const TerraONApp(),
+    ),
+  );
 }
 
-class TerraOnApp extends StatelessWidget {
-  const TerraOnApp({super.key});
-
+class TerraONApp extends StatelessWidget {
+  const TerraONApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TerraON',
-      debugShowCheckedModeBanner: false,
-      theme: themeLight(),
-      darkTheme: themeDark(),
-      themeMode: ThemeMode.light,
-
-      initialRoute: '/choose-login',
-
-      routes: {'/explore': (_) => const ExplorePage()},
-
-      // Fallback: volta para a tela inicial do fluxo
-      onUnknownRoute: (_) =>
-          MaterialPageRoute(builder: (_) => const ExplorePage()),
-    );
+    return MaterialApp.router(title: 'TerraON', routerConfig: AppRouter.router);
   }
 }

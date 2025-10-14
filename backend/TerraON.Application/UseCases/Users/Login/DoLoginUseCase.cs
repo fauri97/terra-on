@@ -26,6 +26,7 @@ namespace TerraON.Application.UseCases.Users.Login
 
             return new ResponseLoginJson
             {
+                Id = user.Id,
                 Email = dto.Email,
                 Name = user.Name,
                 AccessToken = _accessTokenGenerator.Generate(user)
