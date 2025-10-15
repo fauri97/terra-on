@@ -1,52 +1,44 @@
-import 'dart:ui';
-import 'package:app/app_router.dart';
-import 'package:app/core/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+import '../../app_router.dart';
+import '../../core/repositories/auth_repository.dart';
+import '../../widgets/app_navbar.dart';
+import '../../widgets/app_footer.dart';
+
+class LoginUserPage extends StatefulWidget {
+  const LoginUserPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginUserPage> createState() => _LoginUserPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final _emailCtrl = TextEditingController();
-  final _pwdCtrl = TextEditingController();
-  bool _obscure = true;
-  bool _loading = false;
+class _LoginUserPageState extends State<LoginUserPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _pwdCtrl.dispose();
-    super.dispose();
-  }
+  bool _loading = false;
+  bool _obscure = true;
 
   Future<void> _doLogin() async {
-    final email = _emailCtrl.text.trim();
-    final pwd = _pwdCtrl.text;
+    if (!_formKey.currentState!.validate()) return;
 
-    if (email.isEmpty || pwd.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Preencha e-mail e senha.')));
-      return;
-    }
+    final email = _emailController.text.trim();
+    final pwd = _passwordController.text;
 
     setState(() => _loading = true);
     try {
-      // pega o AuthRepository via Provider
       final auth = context.read<AuthRepository>();
       await auth.login(email: email, password: pwd);
-      if (mounted) context.go(AppRouter.main);
+      if (!mounted) return;
+      context.go(AppRouter.main);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao entrar: $e')));
-      print('Login error: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -54,269 +46,132 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Stack(
-        children: [
-          // Fundo em gradiente
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color(0xFF0F3D2E),
-                  Color(0xFF1B5E20),
-                  Color(0xFF91C788),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
-          // Elementos decorativos (bolhas)
-          Positioned(
-            top: -60,
-            left: -40,
-            child: _Bubble(size: 180, color: Colors.white.withOpacity(0.08)),
-          ),
-          Positioned(
-            bottom: -50,
-            right: -30,
-            child: _Bubble(size: 140, color: Colors.white.withOpacity(0.08)),
-          ),
-          // Conteúdo com rolagem
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final maxW = constraints.maxWidth;
-              final cardWidth = maxW < 520 ? maxW * 0.94 : 440.0;
+      appBar: const AppNavbar(showNewReportButton: false),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          child: Form(
+            key: _formKey,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Icon(Icons.lock_outline, size: 72, color: scheme.primary),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Login',
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
 
-              return Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints.tightFor(width: cardWidth),
-                    child: _GlassCard(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(height: 8),
-                            // Logotipo / marca TerraON
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: BoxDecoration(
-                                    color: cs.primary.withOpacity(0.12),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: cs.primary.withOpacity(0.35),
-                                    ),
-                                  ),
-                                  child: Icon(Icons.public, color: cs.primary),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'TerraON',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w700,
-                                    color: cs.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Sua voz por uma cidade melhor',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: cs.onSurface.withOpacity(0.7),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
+                  // E-mail
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'E-mail',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Informe seu e-mail.';
+                      if (!v.contains('@')) return 'E-mail inválido.';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
-                            // Campos
-                            TextField(
-                              controller: _emailCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              decoration: InputDecoration(
-                                labelText: 'E-mail institucional',
-                                prefixIcon: const Icon(Icons.email_outlined),
-                                hintText: 'nome@prefeitura.gov.br',
-                                filled: true,
-                                fillColor: cs.surface.withOpacity(0.6),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            TextField(
-                              controller: _pwdCtrl,
-                              obscureText: _obscure,
-                              decoration: InputDecoration(
-                                labelText: 'Senha',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                suffixIcon: IconButton(
-                                  tooltip: _obscure
-                                      ? 'Mostrar senha'
-                                      : 'Ocultar senha',
-                                  onPressed: () =>
-                                      setState(() => _obscure = !_obscure),
-                                  icon: Icon(
-                                    _obscure
-                                        ? Icons.visibility_outlined
-                                        : Icons.visibility_off_outlined,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: cs.surface.withOpacity(0.6),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            // Esqueci a senha
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () {},
-                                child: const Text('Esqueci minha senha'),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-
-                            // Botão principal
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                onPressed: _loading ? null : _doLogin,
-                                child: _loading
-                                    ? const SizedBox(
-                                        height: 18,
-                                        width: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Text('Entrar'),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-
-                            // Visitante
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                icon: const Icon(Icons.explore_outlined),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                onPressed: () => context.go(AppRouter.main),
-                                label: const Text('Continuar como visitante'),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-
-                            Text(
-                              'Ao continuar, você concorda com os termos de uso e privacidade.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: cs.onSurface.withOpacity(0.6),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                          ],
+                  // Senha
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: _obscure,
+                    decoration: InputDecoration(
+                      labelText: 'Senha',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscure ? Icons.visibility_off : Icons.visibility,
                         ),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Informe sua senha.';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.go('/recover'),
+                      child: const Text('Esqueci minha senha'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Entrar
+                  FilledButton.icon(
+                    onPressed: _loading ? null : _doLogin,
+                    icon: _loading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.login),
+                    label: const Text('Entrar'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-          // AppBar transparente
-          const SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Row(),
+
+                  // Secundário
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.go(AppRouter.register),
+                          icon: const Icon(Icons.person_add_alt_1),
+                          label: const Text('Criar conta'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextButton.icon(
+                          onPressed: () => context.go(AppRouter.main),
+                          icon: const Icon(Icons.visibility),
+                          label: const Text('Entrar como visitante'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GlassCard extends StatelessWidget {
-  final Widget child;
-  const _GlassCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: cs.surface.withOpacity(0.45),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.25)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.18),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: child,
         ),
       ),
+      bottomNavigationBar: const AppFooter(),
     );
   }
-}
-
-class _Bubble extends StatelessWidget {
-  final double size;
-  final Color color;
-  const _Bubble({required this.size, required this.color});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white10,
-        boxShadow: [
-          BoxShadow(blurRadius: 40, spreadRadius: 10, color: Colors.black12),
-        ],
-      ),
-    );
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

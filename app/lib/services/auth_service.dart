@@ -17,16 +17,10 @@ abstract class AuthService {
   // ===== Login / Cadastro / Logout =====
 
   /// Login de pessoa física (usuário comum).
-  Future<bool> loginUser({
-    required String email,
-    required String password,
-  });
+  Future<bool> loginUser({required String email, required String password});
 
   /// Login administrativo (prefeitura/ONG).
-  Future<bool> loginAdmin({
-    required String email,
-    required String password,
-  });
+  Future<bool> loginAdmin({required String email, required String password});
 
   /// Entra como Visitante (sem conta).
   /// Deve limpar qualquer sessão anterior e marcar `isVisitor = true`.
@@ -35,7 +29,7 @@ abstract class AuthService {
   /// Registro de novo cidadão (não admin).
   /// Retorna true se o cadastro foi aceito (não faz login automático).
   Future<bool> registerUser({
-    required String fullName,
+    required String name,
     required String email,
     required String password,
     String? city,

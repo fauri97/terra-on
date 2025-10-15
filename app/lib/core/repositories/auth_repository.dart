@@ -27,7 +27,7 @@ class AuthRepository {
         LogInterceptor(
           request: true,
           requestBody: true,
-          responseBody: true, // cuidado com dados sensíveis
+          responseBody: true,
           responseHeader: false,
         ),
       );
@@ -55,18 +55,16 @@ class AuthRepository {
         options: Options(headers: {'Authorization': null}),
       );
 
-      // === LOG CRU (HTTP + payload)
       debugPrint('--- LOGIN RESPONSE --------------------------------');
       debugPrint('HTTP status: ${resp.statusCode}');
       debugPrint('RAW payload:\n${_pretty(resp.data)}');
 
-      // === Parse p/ seus modelos
+      // Ex.: { statusCode, message, data: { id, name, email, accessToken } }
       final api = ApiResponse.fromJson(
         resp.data!,
         (m) => LoginData.fromJson(m),
       );
 
-      // === LOG PARSEADO
       debugPrint(
         'PARSED: statusCode=${api.statusCode}  message="${api.message}"',
       );
@@ -75,18 +73,30 @@ class AuthRepository {
       );
       debugPrint('PARSED: accessToken="${api.data.accessToken}"');
 
-      // === Regra de sucesso (recomendo usar token como fonte da verdade)
-      final token = api.data.accessToken;
-      if (token.isNotEmpty) {
-        await tokenStore.setToken(token);
-        debugPrint('LOGIN OK → token salvo.');
-        return;
+      // Sua API: sucesso quando statusCode == 0
+      if (api.statusCode != 201) {
+        throw Exception(api.message.isEmpty ? 'Falha de login' : api.message);
       }
 
-      // Se não veio token, considere erro e use a mensagem da API
-      throw Exception(api.message.isEmpty ? 'Falha de login' : api.message);
+      final token = api.data.accessToken;
+      if (token.isEmpty) {
+        throw Exception('Token não recebido da API.');
+      }
+
+      await tokenStore.setToken(token);
+      try {
+        // ignore: unawaited_futures
+        tokenStore.setProfile(
+          id: api.data.id,
+          name: api.data.name,
+          email: api.data.email,
+        );
+      } catch (_) {
+        // Se ainda não implementou setProfile, ignore.
+      }
+
+      debugPrint('LOGIN OK → sessão salva.');
     } on DioException catch (e) {
-      // === LOG de erro Dio (inclui response do servidor, se houver)
       debugPrint('*** DIO ERROR ***');
       debugPrint('type=${e.type}');
       debugPrint('status=${e.response?.statusCode}');
@@ -98,10 +108,41 @@ class AuthRepository {
             : (e.message ?? 'Erro de rede'),
       );
     } catch (e) {
-      // === Outros erros (parse, etc.)
       debugPrint('*** LOGIN ERROR (genérico) *** ${e.toString()}');
       rethrow;
     }
+  }
+
+  Future<bool> registerUser({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final phoneId = 'nanfnfnqpinp31p4j1op4n1pnçoaçdaopn';
+
+    final body = <String, dynamic>{
+      'name': name,
+      'email': email,
+      'password': password,
+      'phoneNumber': '981829368',
+      if (phoneId != null && phoneId.isNotEmpty) 'phoneId': phoneId,
+      // NÃO enviar phoneNumber, UF, cidade, etc.
+    };
+
+    final resp = await _dio.post<Map<String, dynamic>>(
+      '/api/user', // troque pelo seu endpoint real
+      data: body,
+      options: Options(contentType: 'application/json'),
+    );
+
+    // Supondo que sua API siga o mesmo padrão:
+    // { statusCode: 0, message: "...", data: {...} }
+    final statusCode = resp.data?['statusCode'] as int? ?? 1;
+    if (statusCode != 201) {
+      final msg = resp.data?['message']?.toString() ?? 'Falha ao cadastrar.';
+      throw Exception(msg);
+    }
+    return true;
   }
 
   Future<void> logout() => tokenStore.clear();

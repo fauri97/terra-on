@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:app/core/tokens/token_store.dart';
 import 'package:app/widgets/app_navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +25,8 @@ class _FeedPageState extends State<FeedPage> {
   void initState() {
     super.initState();
     final apiClient = context.read<ApiClient>();
-    _repo = ReportsRepository(apiClient);
+    final tokenStore = context.read<TokenStore>();
+    _repo = ReportsRepository(apiClient, tokenStore);
     _future = _repo.getFeed();
   }
 
@@ -54,7 +56,9 @@ class _FeedPageState extends State<FeedPage> {
 
           final items = snap.data ?? const [];
           if (items.isEmpty) {
-            return const Center(child: Text('Nenhuma publicação por aqui ainda.'));
+            return const Center(
+              child: Text('Nenhuma publicação por aqui ainda.'),
+            );
           }
 
           return ListView.separated(
@@ -118,9 +122,9 @@ class _ReportCardState extends State<ReportCard> {
                   child: Text(
                     item.authorName,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: cs.onSurface,
-                        ),
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                    ),
                   ),
                 ),
               ],
@@ -132,8 +136,8 @@ class _ReportCardState extends State<ReportCard> {
               Text(
                 item.description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurface.withOpacity(0.9),
-                    ),
+                  color: cs.onSurface.withOpacity(0.9),
+                ),
               ),
 
             // Carrossel de fotos (quando houver)
@@ -221,7 +225,11 @@ class _AvatarPlaceholder extends StatelessWidget {
   }
 
   String _initials(String fullName) {
-    final parts = fullName.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final parts = fullName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
     if (parts.isEmpty) return 'U';
     if (parts.length == 1) return parts.first[0].toUpperCase();
     return (parts.first[0] + parts.last[0]).toUpperCase();

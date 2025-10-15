@@ -18,7 +18,7 @@ class AppRouter {
       GoRoute(
         path: login,
         name: 'login',
-        builder: (context, state) => const LoginPage(),
+        builder: (context, state) => const LoginUserPage(),
       ),
       GoRoute(
         path: register,

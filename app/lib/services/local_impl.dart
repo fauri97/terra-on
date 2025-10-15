@@ -1,12 +1,6 @@
 import 'auth_service.dart';
 import 'report_service.dart';
 
-/// TerraON — Implementações locais mínimas (sem backend)
-///
-/// Objetivo: permitir que a UI funcione sem dados falsos.
-/// Nenhum dado é salvo ou persistido.
-/// Apenas garante que as chamadas retornem respostas neutras ([], null, false).
-
 /// Implementação local mínima do AuthService.
 class LocalAuthService implements AuthService {
   bool _loggedIn = false;
@@ -69,7 +63,7 @@ class LocalAuthService implements AuthService {
 
   @override
   Future<bool> registerUser({
-    required String fullName,
+    required String name,
     required String email,
     required String password,
     String? city,
@@ -79,7 +73,7 @@ class LocalAuthService implements AuthService {
   }) async {
     await Future.delayed(const Duration(milliseconds: 400));
     // Local: apenas aceita o cadastro; não faz login automático.
-    _userName = fullName;
+    _userName = name;
     _userEmail = email;
     _userCity = city;
     _userUF = uf;

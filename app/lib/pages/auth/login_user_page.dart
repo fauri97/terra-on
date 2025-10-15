@@ -70,7 +70,7 @@ class _LoginUserPageState extends State<LoginUserPage> {
                   Icon(Icons.lock_outline, size: 72, color: scheme.primary),
                   const SizedBox(height: 16),
                   Text(
-                    'Login (não administrativo)',
+                    'Login',
                     style: textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

@@ -1,3 +1,5 @@
+// lib/pages/reports/new_report_page.dart
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,66 +8,58 @@ import 'package:image_picker/image_picker.dart';
 import '../../widgets/app_navbar.dart';
 import '../../widgets/app_footer.dart';
 import '../../services/service_locator.dart';
-import '../../services/report_service.dart';
-
-/// TerraON — NewReportPage
-///
-/// Tela para criar nova denúncia.
-/// Formulário: (sem título), categoria (enum), cidade, bairro, descrição,
-/// opção de anonimato e upload de foto.
-/// Pergunta sobre localização atual (chave) e trata permissões.
+import '../../core/repositories/reports_repository.dart'; // <-- usa o repo
 
 class NewReportPage extends StatefulWidget {
   const NewReportPage({super.key});
-
   @override
   State<NewReportPage> createState() => _NewReportPageState();
 }
 
 class _NewReportPageState extends State<NewReportPage> {
   final _formKey = GlobalKey<FormState>();
+
   final _descController = TextEditingController();
   final _districtController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _cepController = TextEditingController();
 
-  ReportCategory? _category;
-  bool _anonymous = false;
   bool _loading = false;
 
   // Localização
-  bool _useLocation = true; // ligada por padrão (como combinamos)
+  bool _useLocation = true;
   bool _resolvingLocation = false;
 
   // UF / Cidade (IBGE)
-  List<String> _states = []; // nomes de estado ex.: "Rio Grande do Sul"
-  List<String> _cities = []; // nomes de municípios
-  String? _stateName; // Nome do estado selecionado
-  String? _uf; // Sigla ex.: "RS"
-  String? _city; // Nome da cidade selecionada
+  List<String> _states = [];
+  List<String> _cities = [];
+  String? _stateName; // ex.: "Rio Grande do Sul"
+  String? _uf; // ex.: "RS"
+  String? _city; // ex.: "Porto Alegre"
   bool _loadingStates = false;
   bool _loadingCities = false;
 
   // Foto (preview cross-platform)
   final _picker = ImagePicker();
   Uint8List? _photoBytes;
-  String? _photoPath; // para Android; no Web pode vir vazio
-
-  // Labels amigáveis para o enum ReportCategory
-  static const Map<ReportCategory, String> _categoryLabels = {
-    ReportCategory.iluminacao: 'Iluminação pública',
-    ReportCategory.lixo: 'Coleta de lixo',
-    ReportCategory.poluicao: 'Meio ambiente',
-    ReportCategory.buraco: 'Infraestrutura',
-    ReportCategory.outro: 'Outros',
-  };
+  String? _photoPath;
 
   @override
   void initState() {
     super.initState();
     _bootstrapIbge();
-    // Se a chave estiver ligada, tenta aplicar a localização atual.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_useLocation) _applyLocation(quiet: true);
     });
+  }
+
+  @override
+  void dispose() {
+    _descController.dispose();
+    _districtController.dispose();
+    _addressController.dispose();
+    _cepController.dispose();
+    super.dispose();
   }
 
   Future<void> _bootstrapIbge() async {
@@ -78,29 +72,21 @@ class _NewReportPageState extends State<NewReportPage> {
     });
   }
 
-  // Aplica localização atual usando GeoService
   Future<void> _applyLocation({bool quiet = false}) async {
     setState(() => _resolvingLocation = true);
     final geo = await geoService.getCurrentCityAndState();
     setState(() => _resolvingLocation = false);
 
     if (geo.permissionDenied) {
-      // Mostra alerta e permite edição manual
       if (!quiet && mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Permissão negada'),
-            content: const Text(
+          builder: (_) => const AlertDialog(
+            title: Text('Permissão negada'),
+            content: Text(
               'Para usar a localização atual, conceda permissão de localização.\n'
               'Você ainda pode informar UF, cidade e bairro manualmente.',
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
           ),
         );
       }
@@ -112,18 +98,12 @@ class _NewReportPageState extends State<NewReportPage> {
       if (!quiet && mounted) {
         await showDialog<void>(
           context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Não foi possível obter sua cidade'),
-            content: const Text(
+          builder: (_) => const AlertDialog(
+            title: Text('Não foi possível obter sua cidade'),
+            content: Text(
               'Não conseguimos detectar sua cidade neste momento.\n'
               'Você pode preencher manualmente.',
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
           ),
         );
       }
@@ -131,15 +111,13 @@ class _NewReportPageState extends State<NewReportPage> {
       return;
     }
 
-    // Preenche UF e carrega cidades
     setState(() {
-      _uf = geo.uf; // ex.: "RS"
-      _stateName = _guessStateFromUF(_uf!); // ex.: "Rio Grande do Sul"
+      _uf = geo.uf; // "RS"
+      _stateName = _guessStateFromUF(_uf!);
       _loadingCities = true;
     });
     await _loadCitiesForUF(_uf!);
 
-    // Seleciona a cidade se existir na lista
     final detected = _cities.firstWhere(
       (c) => c.toLowerCase() == geo.city!.toLowerCase(),
       orElse: () => '',
@@ -219,10 +197,8 @@ class _NewReportPageState extends State<NewReportPage> {
     });
   }
 
-  // Seleção de foto (Android: câmera/galeria; Web: seletor nativo)
   Future<void> _pickPhoto() async {
     if (kIsWeb) {
-      // No Web, abre seletor de arquivo diretamente
       final x = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1600,
@@ -236,7 +212,6 @@ class _NewReportPageState extends State<NewReportPage> {
       return;
     }
 
-    // Android: mostra opções
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       showDragHandle: true,
@@ -266,7 +241,7 @@ class _NewReportPageState extends State<NewReportPage> {
       final bytes = await x.readAsBytes();
       setState(() {
         _photoBytes = bytes;
-        _photoPath = x.path; // pode ser vazio no Web; aqui é Android
+        _photoPath = x.path;
       });
     } catch (e) {
       if (!mounted) return;
@@ -283,11 +258,11 @@ class _NewReportPageState extends State<NewReportPage> {
     });
   }
 
+  String _toBase64(Uint8List bytes) => base64Encode(bytes);
+
   Future<void> _submit() async {
-    // validação: requer categoria, UF/cidade e descrição
     if (!_formKey.currentState!.validate()) return;
 
-    // garante cidade válida
     if (_city == null || _city!.isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -297,57 +272,77 @@ class _NewReportPageState extends State<NewReportPage> {
 
     setState(() => _loading = true);
 
-    // Deriva o "título" interno pela categoria escolhida
-    final derivedTitle = _category != null
-        ? 'Denúncia: ${_categoryLabels[_category] ?? 'Categoria'}'
-        : 'Denúncia';
+    // authorId vindo do authService (se existir)
+    int authorId = 0;
+    try {
+      final dynamic a = authService;
+      final dynamic id = a.userId; // ajuste o nome do campo conforme seu Auth
+      if (id is int) authorId = id;
+      if (id is String) authorId = int.tryParse(id) ?? 0;
+    } catch (_) {
+      authorId = 0;
+    }
 
-    final input = CreateReportInput(
-      title: derivedTitle,
-      description: _descController.text.trim(),
-      category: _category ?? ReportCategory.outro,
-      city: _city!.trim(),
-      district: _districtController.text.trim().isEmpty
-          ? null
-          : _districtController.text.trim(),
-      isAnonymous: _anonymous,
-      // UI apenas (sem upload real ainda). Se tiver path no Android, mandamos.
-      photoPaths: _photoPath == null ? const [] : <String>[_photoPath!],
-    );
+    // lat/long placeholders por enquanto
+    const String lat = '0';
+    const String lon = '0';
 
-    final id = await reportService.createReport(input);
+    final imagesBase64 = <String>[];
+    if (_photoBytes != null) {
+      imagesBase64.add(_toBase64(_photoBytes!));
+      // se sua API aceita com prefixo:
+      // imagesBase64.add('data:image/jpeg;base64,${_toBase64(_photoBytes!)}');
+    }
 
-    setState(() => _loading = false);
-    if (!mounted) return;
+    try {
+      final repo = context.reportsRepo();
 
-    // Implementação local retorna null → estado neutro
-    if (id == null) {
+      final resultId = await repo.createReportRaw(
+        description: _descController.text.trim(),
+        longitude: lon,
+        latitude: lat,
+        address: _addressController.text.trim(),
+        city: _city!.trim(),
+        state: _uf ?? (_stateName ?? ''),
+        bairro: _districtController.text.trim(),
+        cep: _cepController.text.trim(),
+        imagesBase64: imagesBase64,
+      );
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Denúncia enviada (modo local, sem backend).'),
+        SnackBar(
+          content: Text(
+            resultId == null
+                ? 'Denúncia enviada.'
+                : 'Denúncia registrada: $resultId',
+          ),
         ),
       );
+
+      // limpa o form (mantendo UF/cidade se quiser)
       _formKey.currentState?.reset();
       setState(() {
-        _category = null;
-        _anonymous = false;
         _photoBytes = null;
         _photoPath = null;
-        // Mantém UF/cidade se a localização estiver ativa
-        if (_useLocation && (_city == null || _city!.isEmpty)) {
-          _applyLocation(quiet: true);
-        }
+        _districtController.clear();
+        _addressController.clear();
+        _cepController.clear();
       });
-    } else {
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Denúncia registrada: $id')));
+      ).showSnackBar(SnackBar(content: Text('Falha ao enviar: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -364,42 +359,19 @@ class _NewReportPageState extends State<NewReportPage> {
                 children: [
                   Text(
                     'Nova denúncia',
-                    style: textTheme.headlineSmall?.copyWith(
+                    style: text.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
 
-                  // Categoria (enum)
-                  DropdownButtonFormField<ReportCategory>(
-                    decoration: const InputDecoration(
-                      labelText: 'Categoria',
-                      prefixIcon: Icon(Icons.category_outlined),
-                    ),
-                    items: _categoryLabels.entries
-                        .map(
-                          (e) => DropdownMenuItem<ReportCategory>(
-                            value: e.key,
-                            child: Text(e.value),
-                          ),
-                        )
-                        .toList(),
-                    value: _category,
-                    onChanged: (v) => setState(() => _category = v),
-                    validator: (v) =>
-                        v == null ? 'Selecione uma categoria' : null,
-                  ),
-                  const SizedBox(height: 12),
-
                   // Localização automática (chave)
                   SwitchListTile(
                     value: _useLocation,
                     onChanged: (v) async {
                       setState(() => _useLocation = v);
-                      if (v) {
-                        await _applyLocation();
-                      }
+                      if (v) await _applyLocation();
                     },
                     title: const Text('Usar minha localização atual'),
                     subtitle: _resolvingLocation
@@ -435,7 +407,6 @@ class _NewReportPageState extends State<NewReportPage> {
                         ? null
                         : (v) => setState(() => _city = v),
                     validator: (v) {
-                      // Se ainda está carregando ou não há UF, não valida agora
                       if (_loadingCities || _uf == null) return null;
                       return (v == null || v.trim().isEmpty)
                           ? 'Selecione a cidade'
@@ -455,6 +426,32 @@ class _NewReportPageState extends State<NewReportPage> {
                       labelText: 'Bairro (opcional)',
                       prefixIcon: Icon(Icons.map_outlined),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Endereço (obrigatório)
+                  TextFormField(
+                    controller: _addressController,
+                    decoration: const InputDecoration(
+                      labelText: 'Endereço',
+                      prefixIcon: Icon(Icons.location_on_outlined),
+                    ),
+                    validator: (v) => v == null || v.trim().isEmpty
+                        ? 'Informe o endereço'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+
+                  // CEP (obrigatório)
+                  TextFormField(
+                    controller: _cepController,
+                    decoration: const InputDecoration(
+                      labelText: 'CEP',
+                      prefixIcon: Icon(Icons.local_post_office_outlined),
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty ? 'Informe o CEP' : null,
                   ),
                   const SizedBox(height: 12),
 
@@ -514,16 +511,6 @@ class _NewReportPageState extends State<NewReportPage> {
 
                   const SizedBox(height: 16),
 
-                  // Anonimato
-                  CheckboxListTile(
-                    title: const Text('Publicar como anônimo'),
-                    value: _anonymous,
-                    onChanged: (v) => setState(() => _anonymous = v ?? false),
-                    controlAffinity: ListTileControlAffinity.leading,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Botão de envio
                   _loading
                       ? const Center(child: CircularProgressIndicator())
                       : FilledButton.icon(
@@ -539,12 +526,5 @@ class _NewReportPageState extends State<NewReportPage> {
       ),
       bottomNavigationBar: const AppFooter(),
     );
-  }
-
-  @override
-  void dispose() {
-    _descController.dispose();
-    _districtController.dispose();
-    super.dispose();
   }
 }
