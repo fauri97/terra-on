@@ -2,30 +2,20 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../services/service_locator.dart';
-
-/// TerraON — RegisterUserController
-///
-/// Controla o estado e a lógica da tela de cadastro:
-/// - Carrega UFs e cidades (IBGE)
-/// - Usa geolocalização para detectar cidade/UF
-/// - Gerencia avatar (câmera/galeria ou upload web)
-/// - Envia cadastro para o AuthService
-///
-/// Uso na UI:
-///   final c = RegisterUserController()..init();
-///   c.addListener(() => setState(() {}));
-///   ...
-///   await c.submit(name: ..., email: ..., password: ...);
+import 'package:app/core/repositories/auth_repository.dart';
+import '../../services/service_locator.dart'; // se ainda usa ibgeService/geoService
 
 class RegisterUserController extends ChangeNotifier {
-  // --- IBGE / localização ---
+  RegisterUserController(this._auth);
+  final AuthRepository _auth;
+
+  // --- IBGE / localização (opcionais para UI) ---
   final ImagePicker _picker = ImagePicker();
 
   List<String> states = [];
   List<String> cities = [];
   String? stateName; // "Rio Grande do Sul"
-  String? uf;        // "RS"
+  String? uf; // "RS"
   String? city;
 
   bool loadingStates = false;
@@ -35,25 +25,44 @@ class RegisterUserController extends ChangeNotifier {
   // --- Termos ---
   bool acceptedTerms = false;
 
-  // --- Avatar (preview cross-platform) ---
+  // --- Avatar (preview) ---
   Uint8List? avatarBytes;
 
-  // Mapa fixo estado → UF (para inferência rápida)
   static const Map<String, String> _ufs = {
-    'Acre': 'AC','Alagoas':'AL','Amapá':'AP','Amazonas':'AM','Bahia':'BA',
-    'Ceará':'CE','Distrito Federal':'DF','Espírito Santo':'ES','Goiás':'GO',
-    'Maranhão':'MA','Mato Grosso':'MT','Mato Grosso do Sul':'MS','Minas Gerais':'MG',
-    'Pará':'PA','Paraíba':'PB','Paraná':'PR','Pernambuco':'PE','Piauí':'PI',
-    'Rio de Janeiro':'RJ','Rio Grande do Norte':'RN','Rio Grande do Sul':'RS',
-    'Rondônia':'RO','Roraima':'RR','Santa Catarina':'SC','São Paulo':'SP',
-    'Sergipe':'SE','Tocantins':'TO',
+    'Acre': 'AC',
+    'Alagoas': 'AL',
+    'Amapá': 'AP',
+    'Amazonas': 'AM',
+    'Bahia': 'BA',
+    'Ceará': 'CE',
+    'Distrito Federal': 'DF',
+    'Espírito Santo': 'ES',
+    'Goiás': 'GO',
+    'Maranhão': 'MA',
+    'Mato Grosso': 'MT',
+    'Mato Grosso do Sul': 'MS',
+    'Minas Gerais': 'MG',
+    'Pará': 'PA',
+    'Paraíba': 'PB',
+    'Paraná': 'PR',
+    'Pernambuco': 'PE',
+    'Piauí': 'PI',
+    'Rio de Janeiro': 'RJ',
+    'Rio Grande do Norte': 'RN',
+    'Rio Grande do Sul': 'RS',
+    'Rondônia': 'RO',
+    'Roraima': 'RR',
+    'Santa Catarina': 'SC',
+    'São Paulo': 'SP',
+    'Sergipe': 'SE',
+    'Tocantins': 'TO',
   };
 
   // === Ciclo de vida ===
   Future<void> init() async {
     await _loadStates();
 
-    // Prefill com dados do usuário logado (se houver) — acesso seguro
+    // Prefill opcional
     try {
       final dynamic a = authService;
       final String? userUf = a.userUF as String?;
@@ -66,14 +75,12 @@ class RegisterUserController extends ChangeNotifier {
     }
 
     if (uf != null && uf!.isNotEmpty) {
-      // tenta inferir o nome do estado para exibir no dropdown
       stateName = _ufs.keys.firstWhere(
         (name) => _ufs[name] == uf,
         orElse: () => '',
       );
       if (stateName!.isEmpty) stateName = null;
       await loadCitiesForUF(uf!);
-      // garante que a cidade atual exista na lista (senão, mantém null)
       if (city != null && city!.isNotEmpty) {
         final found = cities.firstWhere(
           (c) => c.toLowerCase() == city!.toLowerCase(),
@@ -110,7 +117,7 @@ class RegisterUserController extends ChangeNotifier {
     } else {
       loadingCities = false;
       notifyListeners();
-      throw Exception('Falha ao obter sigla da UF');
+      // mantém a UI responsável por exibir o erro se quiser
     }
   }
 
@@ -122,11 +129,12 @@ class RegisterUserController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // === Localização atual ===
+  // === Localização atual (opcional) ===
   Future<String?> useMyLocation() async {
     final geo = await geoService.getCurrentCityAndState();
     if (geo.permissionDenied) return 'Permissão de localização negada';
-    if (geo.uf == null || geo.city == null) return 'Não foi possível detectar sua cidade';
+    if (geo.uf == null || geo.city == null)
+      return 'Não foi possível detectar sua cidade';
 
     uf = geo.uf;
     stateName = _ufs.keys.firstWhere(
@@ -146,7 +154,9 @@ class RegisterUserController extends ChangeNotifier {
     city = detected.isEmpty ? null : detected;
     notifyListeners();
 
-    return city != null ? 'Localização aplicada: ${geo.city} - ${geo.uf}' : null;
+    return city != null
+        ? 'Localização aplicada: ${geo.city} - ${geo.uf}'
+        : null;
   }
 
   // === Avatar ===
@@ -157,15 +167,13 @@ class RegisterUserController extends ChangeNotifier {
     final xfile = await _picker.pickImage(source: src, maxWidth: 1024);
     if (xfile == null) return;
 
-    avatarBytes = await xfile.readAsBytes(); // Android + Web
+    avatarBytes = await xfile.readAsBytes();
     notifyListeners();
   }
 
   Future<ImageSource?> _chooseSource() async {
-    // UI dessa escolha é responsabilidade da página/Widget.
-   
     if (kIsWeb) return ImageSource.gallery;
-    return ImageSource.gallery; // a Página pode passar a fonte desejada
+    return ImageSource.gallery;
   }
 
   void removeAvatar() {
@@ -180,33 +188,31 @@ class RegisterUserController extends ChangeNotifier {
   }
 
   // === Envio ===
+  /// Envia somente os campos necessários pela sua API:
+  /// - name, email, password e opcionalmente phoneId (para notificações).
   Future<bool> submit({
     required String fullName,
     required String email,
     required String password,
+    String? phoneId, // passe o token do FCM/deviceId aqui quando tiver
   }) async {
     if (!acceptedTerms) {
       throw Exception('É necessário aceitar os Termos e a Política.');
     }
-    if (uf == null || city == null) {
-      throw Exception('Selecione sua UF e Cidade.');
-    }
 
     loadingSubmit = true;
     notifyListeners();
-
-    final ok = await authService.registerUser(
-      fullName: fullName.trim(),
-      email: email.trim(),
-      password: password,
-      city: city!,
-      uf: uf!,
-      avatarPath: null, // upload real virá com backend
-      acceptedTerms: acceptedTerms,
-    );
-
-    loadingSubmit = false;
-    notifyListeners();
-    return ok;
+    try {
+      final ok = await _auth.registerUser(
+        name: fullName.trim(),
+        email: email.trim(),
+        password: password,
+        // phoneNumber: null      // não enviar
+      );
+      return ok;
+    } finally {
+      loadingSubmit = false;
+      notifyListeners();
+    }
   }
 }

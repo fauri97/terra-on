@@ -1,8 +1,12 @@
+import 'package:app/app_router.dart';
+import 'package:app/core/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
-import '../widgets/app_navbar.dart';
-import '../widgets/app_footer.dart';
-import '../widgets/user_avatar_picker.dart';
-import './register_user_controller.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../widgets/app_navbar.dart';
+import '../../widgets/app_footer.dart';
+import '../../widgets/user_avatar_picker.dart';
+import 'register_user_controller.dart';
 
 class RegisterUserPage extends StatefulWidget {
   const RegisterUserPage({super.key});
@@ -23,7 +27,8 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
   @override
   void initState() {
     super.initState();
-    c = RegisterUserController()..init();
+    final repo = context.read<AuthRepository>();
+    c = RegisterUserController(repo)..init();
     c.addListener(_onChange);
   }
 
@@ -55,9 +60,9 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
           const SnackBar(content: Text('Selecione o Estado (UF).')),
         );
       } else if (!hasCity) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Selecione a Cidade.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Selecione a Cidade.')));
       }
       return;
     }
@@ -71,9 +76,11 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
       if (!mounted) return;
       if (ok) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Conta criada! Faça login para continuar.')),
+          const SnackBar(
+            content: Text('Conta criada! Faça login para continuar.'),
+          ),
         );
-        Navigator.pushReplacementNamed(context, '/login-user');
+        context.go(AppRouter.login);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Não foi possível criar a conta.')),
@@ -102,8 +109,11 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
             constraints: const BoxConstraints(maxWidth: 720),
             child: ListView(
               children: [
-                Text('Termos de Uso e Política de Privacidade',
-                    style: text.titleLarge, textAlign: TextAlign.start),
+                Text(
+                  'Termos de Uso e Política de Privacidade',
+                  style: text.titleLarge,
+                  textAlign: TextAlign.start,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   'Estes são termos e políticas de exemplo para o MVP. '
@@ -150,7 +160,12 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
               key: _formKey,
               child: Column(
                 children: [
-                  Text('Criar conta', style: text.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Criar conta',
+                    style: text.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // Avatar
@@ -167,7 +182,9 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
                       labelText: 'Nome completo',
                       prefixIcon: Icon(Icons.person_outline),
                     ),
-                    validator: (v) => v == null || v.trim().isEmpty ? 'Informe seu nome' : null,
+                    validator: (v) => v == null || v.trim().isEmpty
+                        ? 'Informe seu nome'
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -178,8 +195,11 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Informe seu e-mail';
-                      final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim());
+                      if (v == null || v.trim().isEmpty)
+                        return 'Informe seu e-mail';
+                      final ok = RegExp(
+                        r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                      ).hasMatch(v.trim());
                       return ok ? null : 'E-mail inválido';
                     },
                   ),
@@ -205,7 +225,8 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
                       labelText: 'Confirmar senha',
                       prefixIcon: Icon(Icons.lock_reset_outlined),
                     ),
-                    validator: (v) => v == _passCtrl.text ? null : 'As senhas não coincidem',
+                    validator: (v) =>
+                        v == _passCtrl.text ? null : 'As senhas não coincidem',
                   ),
 
                   const SizedBox(height: 12),
@@ -216,43 +237,147 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
                       child: LinearProgressIndicator(minHeight: 2),
                     )
                   else
-                    Row(
-                      children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: c.stateName,
-                            items: c.states.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                            onChanged: (v) => c.onSelectState(v),
-                            decoration: const InputDecoration(
-                              labelText: 'Estado (UF)',
-                              prefixIcon: Icon(Icons.flag_outlined),
-                            ),
-                            // Validação visual adicional
-                            validator: (_) =>
-                                (c.stateName == null || c.stateName!.isEmpty) ? 'Selecione a UF' : null,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: c.city,
-                            items: c.cities.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                            onChanged: c.loadingCities ? null : (v) => setState(() => c.city = v),
-                            decoration: const InputDecoration(
-                              labelText: 'Cidade',
-                              prefixIcon: Icon(Icons.location_city_outlined),
-                            ),
-                            validator: (_) =>
-                                (c.city == null || c.city!.isEmpty) ? 'Selecione a cidade' : null,
-                          ),
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, bx) {
+                        final compact = bx.maxWidth < 420; // breakpoint simples
+                        final field = (Widget child) => compact
+                            ? Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: child,
+                              )
+                            : Expanded(child: child);
+
+                        return compact
+                            // EMPILHADO NO MOBILE
+                            ? Column(
+                                children: [
+                                  DropdownButtonFormField<String>(
+                                    value: c.stateName,
+                                    isExpanded: true, // evita overflow
+                                    items: c.states
+                                        .map(
+                                          (s) => DropdownMenuItem(
+                                            value: s,
+                                            child: Text(
+                                              s,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (v) => c.onSelectState(v),
+                                    decoration: const InputDecoration(
+                                      labelText: 'Estado (UF)',
+                                      prefixIcon: Icon(Icons.flag_outlined),
+                                    ),
+                                    validator: (_) =>
+                                        (c.stateName == null ||
+                                            c.stateName!.isEmpty)
+                                        ? 'Selecione a UF'
+                                        : null,
+                                  ),
+                                  DropdownButtonFormField<String>(
+                                    value: c.city,
+                                    isExpanded: true, // evita overflow
+                                    items: c.cities
+                                        .map(
+                                          (s) => DropdownMenuItem(
+                                            value: s,
+                                            child: Text(
+                                              s,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: c.loadingCities
+                                        ? null
+                                        : (v) => setState(() => c.city = v),
+                                    decoration: const InputDecoration(
+                                      labelText: 'Cidade',
+                                      prefixIcon: Icon(
+                                        Icons.location_city_outlined,
+                                      ),
+                                    ),
+                                    validator: (_) =>
+                                        (c.city == null || c.city!.isEmpty)
+                                        ? 'Selecione a cidade'
+                                        : null,
+                                  ),
+                                ],
+                              )
+                            // LADO A LADO EM TELAS LARGAS
+                            : Row(
+                                children: [
+                                  field(
+                                    DropdownButtonFormField<String>(
+                                      value: c.stateName,
+                                      isExpanded: true, // evita overflow
+                                      items: c.states
+                                          .map(
+                                            (s) => DropdownMenuItem(
+                                              value: s,
+                                              child: Text(
+                                                s,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (v) => c.onSelectState(v),
+                                      decoration: const InputDecoration(
+                                        labelText: 'Estado (UF)',
+                                        prefixIcon: Icon(Icons.flag_outlined),
+                                      ),
+                                      validator: (_) =>
+                                          (c.stateName == null ||
+                                              c.stateName!.isEmpty)
+                                          ? 'Selecione a UF'
+                                          : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  field(
+                                    DropdownButtonFormField<String>(
+                                      value: c.city,
+                                      isExpanded: true, // evita overflow
+                                      items: c.cities
+                                          .map(
+                                            (s) => DropdownMenuItem(
+                                              value: s,
+                                              child: Text(
+                                                s,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: c.loadingCities
+                                          ? null
+                                          : (v) => setState(() => c.city = v),
+                                      decoration: const InputDecoration(
+                                        labelText: 'Cidade',
+                                        prefixIcon: Icon(
+                                          Icons.location_city_outlined,
+                                        ),
+                                      ),
+                                      validator: (_) =>
+                                          (c.city == null || c.city!.isEmpty)
+                                          ? 'Selecione a cidade'
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              );
+                      },
                     ),
+
                   if (c.loadingCities)
                     const Padding(
                       padding: EdgeInsets.only(top: 8),
                       child: LinearProgressIndicator(minHeight: 2),
                     ),
+
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TextButton.icon(
@@ -260,7 +385,9 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
                         final msg = await c.useMyLocation();
                         if (!mounted) return;
                         if (msg != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(msg)));
                         }
                       },
                       icon: const Icon(Icons.my_location),
@@ -279,11 +406,17 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
                           c.setAcceptedTerms(v ?? false);
                           if ((v ?? false) && mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Você aceitou os Termos e a Política.')),
+                              const SnackBar(
+                                content: Text(
+                                  'Você aceitou os Termos e a Política.',
+                                ),
+                              ),
                             );
                           }
                         },
-                        title: const Text('Aceito os Termos e a Política de Privacidade'),
+                        title: const Text(
+                          'Aceito os Termos e a Política de Privacidade',
+                        ),
                         controlAffinity: ListTileControlAffinity.leading,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -308,7 +441,7 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
 
                   const SizedBox(height: 12),
                   TextButton.icon(
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/login-user'),
+                    onPressed: () => context.go(AppRouter.login),
                     icon: const Icon(Icons.login),
                     label: const Text('Já tenho conta — entrar'),
                   ),

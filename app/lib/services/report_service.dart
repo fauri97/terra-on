@@ -1,10 +1,3 @@
-/// TerraON — ReportService
-///
-/// Define a interface para manipulação de denúncias (reports).
-/// Nesta fase, não há dados reais — apenas assinaturas e tipos.
-/// A implementação local mínima está em `local_impl.dart`.
-
-/// Representa um intervalo de tempo (sem depender de DateTimeRange do Material).
 class ReportPeriod {
   final DateTime? start;
   final DateTime? end;
@@ -12,24 +5,10 @@ class ReportPeriod {
 }
 
 /// Possíveis status de uma denúncia.
-enum ReportStatus {
-  aberta,
-  triagem,
-  andamento,
-  resolvida,
-  cancelada,
-}
+enum ReportStatus { aberta, triagem, andamento, resolvida, cancelada }
 
 /// Categorias/tipos mais comuns de denúncia.
-enum ReportCategory {
-  lixo,
-  esgoto,
-  poda,
-  iluminacao,
-  buraco,
-  poluicao,
-  outro,
-}
+enum ReportCategory { lixo, esgoto, poda, iluminacao, buraco, poluicao, outro }
 
 /// Modelo resumido de uma denúncia (para listagens e histórico).
 class ReportSummary {
