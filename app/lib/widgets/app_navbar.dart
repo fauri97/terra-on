@@ -35,7 +35,7 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
           title: Row(
             children: [
               InkWell(
-                onTap: () => context.go(AppRouter.login),
+                onTap: () => context.go(AppRouter.main),
                 borderRadius: BorderRadius.circular(8),
                 child: Row(
                   children: [
@@ -74,7 +74,7 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
                           icon: const Icon(Icons.add),
                           label: const Text('Nova denúncia'),
                           onPressed: () =>
-                              Navigator.pushNamed(context, '/new-report'),
+                              context.go(AppRouter.newReport),
                         ),
                       ),
                     const SizedBox(width: 8),
@@ -97,7 +97,7 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
                           tooltip: 'Nova denúncia',
                           icon: const Icon(Icons.add),
                           onPressed: () =>
-                              Navigator.pushNamed(context, '/new-report'),
+                              context.go(AppRouter.newReport),
                         ),
                       ),
                     _CollapsedActions(isLoggedIn: isLoggedIn),
@@ -131,7 +131,6 @@ class _CollapsedActions extends StatelessWidget {
       onSelected: (value) {
         switch (value) {
           case 'home':
-            context.go(AppRouter.login);
             break;
           case 'explore':
             Navigator.pushNamed(context, '/explore');

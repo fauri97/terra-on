@@ -35,6 +35,10 @@ class TerraONApp extends StatelessWidget {
   const TerraONApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(title: 'TerraON', routerConfig: AppRouter.router);
+    return MaterialApp.router(
+      title: 'TerraON',
+      routerConfig: AppRouter.router,
+      debugShowCheckedModeBanner: false,
+    );
   }
 }
