@@ -52,6 +52,12 @@ namespace TerraON.Infrastructure.DataAccess
         private static void ConfigureUser(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().ToTable("Users");
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.ProfileImage)
+                .WithMany()
+                .HasForeignKey(u => u.ProfileImageId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
 
         private static void ConfigureReport(ModelBuilder modelBuilder)
@@ -95,6 +101,9 @@ namespace TerraON.Infrastructure.DataAccess
              .WithMany(r => r.Images)
              .HasForeignKey(i => i.ReportId)
              .OnDelete(DeleteBehavior.Cascade);
+
+            e.Ignore(i => i.User);
+            e.Ignore(i => i.UserId);
         }
 
         private static void ConfigureComment(ModelBuilder modelBuilder)

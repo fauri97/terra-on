@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using TerraON.Application.Services.Cryptography;
+using TerraON.Application.Services.Image;
 using TerraON.Application.UseCases.Users.Register.DTOs;
 using TerraON.Domain.Entities;
 using TerraON.Domain.Repositories;
@@ -25,12 +26,42 @@ namespace TerraON.Application.UseCases.Users.Register
         private readonly IPasswordService _passwordService = passwordService;
         private readonly IAccessTokenGenerator _accessTokenGenerator = accessTokenGenerator;
         private readonly IUnityOfWork _unityOfWork = unityOfWork;
+
+        private const long MaxImageBytes = 20 * 1024 * 1024;
         public async Task<ResponseCreatedUserJson> ExecuteAsync(RequestCreateUserJson request)
         {
             await Validate(request);
             var user = _mapper.Map<User>(request);
             user.PasswordHash = _passwordService.Hash(request.Password);
             user.UserIdentifier = Guid.NewGuid();
+
+            if (request.ProfileImageBase64 is not null)
+            {
+                var seenHashes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+
+                if (!Base64ToByteaService.TryDecode(request.ProfileImageBase64, out var data, out var contentType, out var sizeBytes))
+                {
+                    var sha = Base64ToByteaService.ComputeSha256Hex(data);
+
+                    if (seenHashes.Add(sha))
+                    {
+                        var ext = (contentType.Split('/').LastOrDefault() ?? "bin").ToLowerInvariant();
+
+                        var fileName = $"{sha[..8]}.{ext}";
+
+                        user.ProfileImage = new Image
+                        {
+                            Data = data,
+                            ContentType = contentType,
+                            SizeBytes = sizeBytes,
+                            Sha256 = sha,
+                            OriginalFileName = fileName
+                        };
+                    }
+                }
+
+            }
 
             await _userWriteOnlyRepository.CreateAsync(user);
             await _unityOfWork.SaveChangesAsync();
