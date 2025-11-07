@@ -23,7 +23,6 @@ namespace TerraON.Application.Services.Image
             string? contentType = null;
             string payload = base64.Trim();
 
-            // Detecta se veio no formato data-url
             var match = DataUrlRegex.Match(payload);
             if (match.Success)
             {
@@ -31,9 +30,8 @@ namespace TerraON.Application.Services.Image
                 payload = match.Groups["b64"].Value;
             }
 
-            // Normaliza o Base64:
-            payload = Regex.Replace(payload, @"\s+", ""); // remove espaços/quebras de linha
-            payload = payload.Replace('-', '+').Replace('_', '/'); // url-safe → padrão
+            payload = Regex.Replace(payload, @"\s+", ""); 
+            payload = payload.Replace('-', '+').Replace('_', '/');
             int mod4 = payload.Length % 4;
             if (mod4 != 0) payload = payload.PadRight(payload.Length + (4 - mod4), '=');
 

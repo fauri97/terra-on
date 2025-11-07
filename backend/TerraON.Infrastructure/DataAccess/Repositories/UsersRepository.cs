@@ -4,7 +4,10 @@ using TerraON.Domain.Repositories.Users;
 
 namespace TerraON.Infrastructure.DataAccess.Repositories
 {
-    public class UsersRepository(TerraONDbContext dbContext) : IUserReadOnlyRepository, IUserWriteOnlyRepository
+    public class UsersRepository(TerraONDbContext dbContext) :
+        IUserReadOnlyRepository,
+        IUserWriteOnlyRepository,
+        IUserUpdateOnlyRepository
     {
         private readonly TerraONDbContext _dbContext = dbContext;
 
@@ -27,11 +30,15 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
            
             => await _dbContext.Users   
                 .AsNoTracking()
+                .Include(img => img.ProfileImage)
                 .FirstOrDefaultAsync(u => u.UserIdentifier == userIdentifier);
 
         public async Task<bool> ExistActiveUserWithID(long id)
             => await _dbContext.Users
                 .AsNoTracking()
                 .AnyAsync(u => u.Id == id && !u.IsDeleted);
+
+        public void Update(User user)
+            => _dbContext.Users.Update(user);
     }
 }

@@ -159,4 +159,7 @@
   <data name="USER_ID_INVALID" xml:space="preserve">
     <value>ID do usuário inválido.</value>
   </data>
+  <data name="USER_NOT_FOUND" xml:space="preserve">
+    <value>Usuário não encontrado.</value>
+  </data>
 </root>

@@ -27,7 +27,6 @@ namespace TerraON.Application.UseCases.Users.Register
         private readonly IAccessTokenGenerator _accessTokenGenerator = accessTokenGenerator;
         private readonly IUnityOfWork _unityOfWork = unityOfWork;
 
-        private const long MaxImageBytes = 20 * 1024 * 1024;
         public async Task<ResponseCreatedUserJson> ExecuteAsync(RequestCreateUserJson request)
         {
             await Validate(request);
@@ -37,30 +36,25 @@ namespace TerraON.Application.UseCases.Users.Register
 
             if (request.ProfileImageBase64 is not null)
             {
-                var seenHashes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-
-                if (!Base64ToByteaService.TryDecode(request.ProfileImageBase64, out var data, out var contentType, out var sizeBytes))
+                if (Base64ToByteaService.TryDecode(request.ProfileImageBase64, out var data, out var contentType, out var sizeBytes))
                 {
                     var sha = Base64ToByteaService.ComputeSha256Hex(data);
+                    var ext = (contentType.Split('/').LastOrDefault() ?? "bin").ToLowerInvariant();
+                    var fileName = $"{sha[..8]}.{ext}";
 
-                    if (seenHashes.Add(sha))
+                    user.ProfileImage = new Image
                     {
-                        var ext = (contentType.Split('/').LastOrDefault() ?? "bin").ToLowerInvariant();
-
-                        var fileName = $"{sha[..8]}.{ext}";
-
-                        user.ProfileImage = new Image
-                        {
-                            Data = data,
-                            ContentType = contentType,
-                            SizeBytes = sizeBytes,
-                            Sha256 = sha,
-                            OriginalFileName = fileName
-                        };
-                    }
+                        Data = data,
+                        ContentType = contentType,
+                        SizeBytes = sizeBytes,
+                        Sha256 = sha,
+                        OriginalFileName = fileName
+                    };
                 }
-
+                else
+                {
+                    throw new BusinessValidationException(["Imagem de perfil inválida (Base64 corrompido)."]);
+                }
             }
 
             await _userWriteOnlyRepository.CreateAsync(user);

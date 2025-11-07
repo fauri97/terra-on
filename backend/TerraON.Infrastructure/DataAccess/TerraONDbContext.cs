@@ -55,8 +55,8 @@ namespace TerraON.Infrastructure.DataAccess
 
             modelBuilder.Entity<User>()
                 .HasOne(u => u.ProfileImage)
-                .WithMany()
-                .HasForeignKey(u => u.ProfileImageId)
+                .WithOne(i => i.User)
+                .HasForeignKey<User>(u => u.ProfileImageId)
                 .OnDelete(DeleteBehavior.SetNull);
         }
 
@@ -103,7 +103,6 @@ namespace TerraON.Infrastructure.DataAccess
              .OnDelete(DeleteBehavior.Cascade);
 
             e.Ignore(i => i.User);
-            e.Ignore(i => i.UserId);
         }
 
         private static void ConfigureComment(ModelBuilder modelBuilder)
