@@ -7,7 +7,8 @@
         public string ContentType { get; set; } = string.Empty;
         public long SizeBytes { get; set; }
         public string? Sha256 { get; set; }
-        public long ReportId { get; set; }
-        public Report Report { get; set; } = null!;
+        public long? ReportId { get; set; }
+        public Report? Report { get; set; } = null!;
+        public User? User { get; set; }
     }
 }

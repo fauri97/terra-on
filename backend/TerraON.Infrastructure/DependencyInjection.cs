@@ -35,6 +35,7 @@ namespace TerraON.Infrastructure
 
             services.AddScoped<IUserReadOnlyRepository, UsersRepository>();
             services.AddScoped<IUserWriteOnlyRepository, UsersRepository>();
+            services.AddScoped<IUserUpdateOnlyRepository, UsersRepository>();
 
             services.AddScoped<IReportWriteOnlyRepository, ReportsRepository>();
             services.AddScoped<IReportReadOnlyRepository, ReportsRepository>();

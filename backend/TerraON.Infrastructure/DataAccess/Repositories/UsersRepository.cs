@@ -4,7 +4,10 @@ using TerraON.Domain.Repositories.Users;
 
 namespace TerraON.Infrastructure.DataAccess.Repositories
 {
-    public class UsersRepository(TerraONDbContext dbContext) : IUserReadOnlyRepository, IUserWriteOnlyRepository
+    public class UsersRepository(TerraONDbContext dbContext) :
+        IUserReadOnlyRepository,
+        IUserWriteOnlyRepository,
+        IUserUpdateOnlyRepository
     {
         private readonly TerraONDbContext _dbContext = dbContext;
 
@@ -12,7 +15,9 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
             => await _dbContext.Users.AddAsync(user);
 
         public async Task<User?> GetById(long id)
-            => await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+            => await _dbContext.Users
+            .Include(img => img.ProfileImage)
+            .FirstOrDefaultAsync(u => u.Id == id);
         public async Task<User?> GetByEmail(string email)
             => await _dbContext.Users
                 .AsNoTracking()
@@ -25,13 +30,16 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
 
         public async Task<User?> GetByUserIdentifier(Guid userIdentifier)
            
-            => await _dbContext.Users   
-                .AsNoTracking()
+            => await _dbContext.Users
+                .Include(img => img.ProfileImage)
                 .FirstOrDefaultAsync(u => u.UserIdentifier == userIdentifier);
 
         public async Task<bool> ExistActiveUserWithID(long id)
             => await _dbContext.Users
                 .AsNoTracking()
                 .AnyAsync(u => u.Id == id && !u.IsDeleted);
+
+        public void Update(User user)
+            => _dbContext.Users.Update(user);
     }
 }
