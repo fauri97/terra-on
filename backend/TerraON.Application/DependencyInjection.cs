@@ -8,6 +8,7 @@ using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Users.Get.Me;
 using TerraON.Application.UseCases.Users.Login;
 using TerraON.Application.UseCases.Users.Register;
+using TerraON.Application.UseCases.Users.Update;
 
 namespace TerraON.Application
 {
@@ -36,6 +37,7 @@ namespace TerraON.Application
             services.AddScoped<ICreateUserUseCase, CreateUserUseCase>();
             services.AddScoped<IDoLoginUseCase, DoLoginUseCase>();
             services.AddScoped<IGetMyselfUserUseCase, GetMyselfUserUseCase>();
+            services.AddScoped<IUpdateUserUseCase, UpdateUserUseCase>();
 
             services.AddScoped<ICreateReportUseCase, CreateReportUseCase>();
             services.AddScoped<IGetReportUseCase, GetReportUseCase>();

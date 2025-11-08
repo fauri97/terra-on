@@ -7,6 +7,8 @@ using TerraON.Application.UseCases.Users.Get.Me;
 using TerraON.Application.UseCases.Users.Get.Me.DTOs;
 using TerraON.Application.UseCases.Users.Register;
 using TerraON.Application.UseCases.Users.Register.DTOs;
+using TerraON.Application.UseCases.Users.Update;
+using TerraON.Application.UseCases.Users.Update.DTOs;
 using TerraON.Exception.ExceptionBase;
 
 namespace TerraON.API.Controllers
@@ -56,6 +58,25 @@ namespace TerraON.API.Controllers
             };
             return Ok(response);
 
+        }
+
+        [AuthenticatedUser]
+        [HttpPut("{Id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseBase<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ResponseBase<string>))]
+        public async Task<ActionResult<ResponseBase<string>>> UpdateUser(
+            [FromServices] IUpdateUserUseCase useCase,
+            [FromBody] RequestUpdateUserJson request,
+            [FromRoute] long Id)
+        {
+            await useCase.Update(Id,request);
+            var response = new ResponseBase<string>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Usuário atualizado com sucesso.",
+                Data = null
+            };
+            return Ok(response);
         }
     }
 }

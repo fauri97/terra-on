@@ -15,7 +15,9 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
             => await _dbContext.Users.AddAsync(user);
 
         public async Task<User?> GetById(long id)
-            => await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+            => await _dbContext.Users
+            .Include(img => img.ProfileImage)
+            .FirstOrDefaultAsync(u => u.Id == id);
         public async Task<User?> GetByEmail(string email)
             => await _dbContext.Users
                 .AsNoTracking()
@@ -28,8 +30,7 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
 
         public async Task<User?> GetByUserIdentifier(Guid userIdentifier)
            
-            => await _dbContext.Users   
-                .AsNoTracking()
+            => await _dbContext.Users
                 .Include(img => img.ProfileImage)
                 .FirstOrDefaultAsync(u => u.UserIdentifier == userIdentifier);
 
