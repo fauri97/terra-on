@@ -17,7 +17,10 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Geral', style: text.titleMedium?.copyWith(color: scheme.primary)),
+          Text(
+            'Geral',
+            style: text.titleMedium?.copyWith(color: scheme.primary),
+          ),
           const SizedBox(height: 8),
 
           ListTile(
@@ -29,7 +32,10 @@ class SettingsPage extends StatelessWidget {
 
           const Divider(height: 32),
 
-          Text('Legal', style: text.titleMedium?.copyWith(color: scheme.primary)),
+          Text(
+            'Legal',
+            style: text.titleMedium?.copyWith(color: scheme.primary),
+          ),
           const SizedBox(height: 8),
 
           ListTile(
