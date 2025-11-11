@@ -1,6 +1,7 @@
+// lib/core/models/report_models.dart
 class ApiListResponse<T> {
   final int statusCode;
-  final String message;
+  final String? message;
   final List<T> data;
 
   ApiListResponse({
@@ -11,19 +12,77 @@ class ApiListResponse<T> {
 
   factory ApiListResponse.fromJson(
     Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) fromItem,
+    T Function(Map<String, dynamic>) fromMap,
   ) {
-    final list = (json['data'] as List<dynamic>? ?? [])
+    final list = (json['data'] as List? ?? const [])
         .whereType<Map<String, dynamic>>()
-        .map(fromItem)
+        .map(fromMap)
         .toList();
-
-    return ApiListResponse(
-      statusCode: json['statusCode'] as int? ?? -1,
-      message: json['message'] as String? ?? '',
+    return ApiListResponse<T>(
+      statusCode: json['statusCode'] is int ? json['statusCode'] as int : 0,
+      message: json['message'] as String?,
       data: list,
     );
   }
+}
+
+class InlineImage {
+  final String? base64;
+  final String? contentType;
+  final int? sizeBytes;
+
+  InlineImage({this.base64, this.contentType, this.sizeBytes});
+
+  factory InlineImage.fromMap(Map<String, dynamic>? m) {
+    if (m == null) return InlineImage();
+    return InlineImage(
+      base64: m['base64'] as String?,
+      contentType: m['contentType'] as String?,
+      sizeBytes: m['sizeBytes'] is int ? m['sizeBytes'] as int : null,
+    );
+  }
+}
+
+class ReportImage {
+  final int? id;
+  final String? base64;
+  final String? contentType;
+  final int? sizeBytes;
+
+  ReportImage({this.id, this.base64, this.contentType, this.sizeBytes});
+
+  factory ReportImage.fromMap(Map<String, dynamic> m) => ReportImage(
+    id: m['id'] is int ? m['id'] as int : null,
+    base64: m['base64'] as String?,
+    contentType: m['contentType'] as String?,
+    sizeBytes: m['sizeBytes'] is int ? m['sizeBytes'] as int : null,
+  );
+}
+
+class ReportComment {
+  final int id;
+  final String text;
+  final int authorId;
+  final String authorName;
+  final InlineImage? authorAvatar;
+
+  ReportComment({
+    required this.id,
+    required this.text,
+    required this.authorId,
+    required this.authorName,
+    this.authorAvatar,
+  });
+
+  factory ReportComment.fromMap(Map<String, dynamic> m) => ReportComment(
+    id: (m['id'] as num?)?.toInt() ?? 0,
+    text: m['text'] as String? ?? '',
+    authorId: (m['authorId'] as num?)?.toInt() ?? 0,
+    authorName: m['authorName'] as String? ?? '',
+    authorAvatar: InlineImage.fromMap(
+      m['authorAvatar'] as Map<String, dynamic>?,
+    ),
+  );
 }
 
 class ReportItem {
@@ -37,7 +96,10 @@ class ReportItem {
   final String state;
   final String bairro;
   final String cep;
-  final List<String> imagesBase64;
+
+  final InlineImage? authorAvatar;
+  final List<ReportComment> comments;
+  final List<ReportImage> images;
 
   ReportItem({
     required this.description,
@@ -50,22 +112,32 @@ class ReportItem {
     required this.state,
     required this.bairro,
     required this.cep,
-    required this.imagesBase64,
+    required this.authorAvatar,
+    required this.comments,
+    required this.images,
   });
 
-  factory ReportItem.fromJson(Map<String, dynamic> json) => ReportItem(
-        description: json['description'] as String? ?? '',
-        authorId: (json['authorId'] as num?)?.toInt() ?? 0,
-        authorName: json['authorName'] as String? ?? 'Usuário',
-        longitude: json['longitude'] as String? ?? '',
-        latitude: json['latitude'] as String? ?? '',
-        address: json['address'] as String? ?? '',
-        city: json['city'] as String? ?? '',
-        state: json['state'] as String? ?? '',
-        bairro: json['bairro'] as String? ?? '',
-        cep: json['cep'] as String? ?? '',
-        imagesBase64: (json['imagesBase64'] as List<dynamic>? ?? [])
-            .whereType<String>()
-            .toList(),
-      );
+  factory ReportItem.fromJson(Map<String, dynamic> m) => ReportItem(
+    description: m['description'] as String? ?? '',
+    authorId: (m['authorId'] as num?)?.toInt() ?? 0,
+    authorName: m['authorName'] as String? ?? '',
+    longitude: m['longitude'] as String? ?? '',
+    latitude: m['latitude'] as String? ?? '',
+    address: m['address'] as String? ?? '',
+    city: m['city'] as String? ?? '',
+    state: m['state'] as String? ?? '',
+    bairro: m['bairro'] as String? ?? '',
+    cep: m['cep'] as String? ?? '',
+    authorAvatar: InlineImage.fromMap(
+      m['authorAvatar'] as Map<String, dynamic>?,
+    ),
+    comments: (m['comments'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(ReportComment.fromMap)
+        .toList(),
+    images: (m['images'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(ReportImage.fromMap)
+        .toList(),
+  );
 }

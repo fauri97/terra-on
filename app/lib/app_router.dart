@@ -1,9 +1,8 @@
 import 'package:app/pages/auth/register_user_page.dart';
-import 'package:app/pages/feed_page.dart';
 import 'package:app/pages/login/login_page.dart';
+import 'package:app/pages/reports/feed_page.dart';
 import 'package:go_router/go_router.dart';
 
-import 'pages/explore_page.dart';
 import 'pages/reports/new_report_page.dart';
 
 class AppRouter {

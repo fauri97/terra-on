@@ -17,11 +17,52 @@ namespace TerraON.Application.UseCases.Reports.Get
         {
             var reports = await _reportReadOnlyRepository.GetAllAsync();
 
+            static InlineImageJson? BuildInline(User? user)
+            {
+                var img = user?.ProfileImage;
+                if (img == null || (img.Data?.Length ?? 0) == 0) return null;
+
+                return new InlineImageJson
+                {
+                    Base64 = Convert.ToBase64String(img.Data),                            // puro
+                    ContentType = string.IsNullOrWhiteSpace(img.ContentType)
+                        ? "image/webp" : img.ContentType,
+                    SizeBytes = img.SizeBytes > 0 ? img.SizeBytes : null
+                };
+            }
+
+            static InlineImageJson? BuildInlineFrom(Comment c)
+            {
+                var img = c.Author?.ProfileImage;
+                if (img == null || (img.Data?.Length ?? 0) == 0) return null;
+
+                return new InlineImageJson
+                {
+                    Base64 = Convert.ToBase64String(img.Data),                            // puro
+                    ContentType = string.IsNullOrWhiteSpace(img.ContentType)
+                        ? "image/webp" : img.ContentType,
+                    SizeBytes = img.SizeBytes > 0 ? img.SizeBytes : null
+                };
+            }
+
+            static ReportImageJson MapReportImage(Image img)
+            {
+                return new ReportImageJson
+                {
+                    Id = img.Id,
+                    Base64 = Convert.ToBase64String(img.Data),                            // puro
+                    ContentType = string.IsNullOrWhiteSpace(img.ContentType)
+                        ? "image/webp" : img.ContentType,
+                    SizeBytes = img.SizeBytes > 0 ? img.SizeBytes : null
+                };
+            }
+
             var list = reports.Select(r => new ResponseGetReportJson
             {
                 Description = r.Description,
                 AuthorId = r.AuthorId,
                 AuthorName = r.Author?.Name ?? string.Empty,
+
                 Longitude = r.Longitude,
                 Latitude = r.Latitude,
                 Address = r.Address ?? string.Empty,
@@ -29,14 +70,26 @@ namespace TerraON.Application.UseCases.Reports.Get
                 State = r.State ?? string.Empty,
                 Bairro = r.Bairro ?? string.Empty,
                 CEP = r.CEP ?? string.Empty,
-                ImagesBase64 = (r.Images ?? Enumerable.Empty<Image>())
-                    .Select(img =>
+
+                // Avatar do autor (puro + contentType)
+                AuthorAvatar = BuildInline(r.Author),
+
+                // Comentários
+                Comments = [.. (r.Comments ?? Enumerable.Empty<Comment>())
+                    .Select(c => new CommentsJson
                     {
-                        var b64 = Convert.ToBase64String(img.Data);
-                        var ct = string.IsNullOrWhiteSpace(img.ContentType) ? "application/octet-stream" : img.ContentType;
-                        return $"data:{ct};base64,{b64}";
+                        Id = c.Id,
+                        Text = c.Content,
+                        AuthorId = c.AuthorId,
+                        AuthorName = c.Author?.Name ?? string.Empty,
+                        AuthorAvatar = BuildInlineFrom(c) // puro + contentType
                     })
-                    .ToList()
+                ],
+
+                // Imagens do report (puras + contentType)
+                Images = [.. (r.Images ?? Enumerable.Empty<Image>())
+                    .Select(MapReportImage)
+                ]
             }).ToList();
 
             return list;

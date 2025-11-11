@@ -1,13 +1,13 @@
-// lib/core/repositories/reports_repository.dart
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app/core/models/api_response.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../api_client.dart';
-import '../models/report_models.dart';
+import '../models/report_models.dart' hide ApiListResponse;
 import '../tokens/token_store.dart';
 
 class ReportsRepository {
@@ -44,14 +44,14 @@ class ReportsRepository {
     String cep = '',
     List<String> imagesBase64 = const [],
   }) async {
-    final authorId = _tokenStore.userId; // << pega do login salvo
+    final authorId = _tokenStore.userId;
     if (authorId == null) {
       throw Exception('Usuário não logado: authorId indisponível.');
     }
 
     final payload = <String, dynamic>{
       "description": description,
-      "authorId": authorId, // << agora sempre vai como int
+      "authorId": authorId,
       "longitude": longitude,
       "latitude": latitude,
       "address": address,
@@ -88,8 +88,6 @@ class ReportsRepository {
 
 /// Conveniência via Provider
 extension ReportsRepoX on BuildContext {
-  ReportsRepository reportsRepo() => ReportsRepository(
-    read<ApiClient>(),
-    read<TokenStore>(), // <- injeta o TokenStore
-  );
+  ReportsRepository reportsRepo() =>
+      ReportsRepository(read<ApiClient>(), read<TokenStore>());
 }

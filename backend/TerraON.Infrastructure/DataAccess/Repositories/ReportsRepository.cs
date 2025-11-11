@@ -19,6 +19,8 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
                 .Include(r => r.Author)
                 .Include(r => r.Images)
                 .Include(r => r.Comments)
+                    .ThenInclude(c => c.Author)
+                        .ThenInclude(a => a.ProfileImage)
                 .Include(r => r.Likes)
                 .ToListAsync();
     }
