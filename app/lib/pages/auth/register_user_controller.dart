@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'dart:convert';
 import 'package:app/core/repositories/auth_repository.dart';
 import '../../services/service_locator.dart'; // se ainda usa ibgeService/geoService
 
@@ -91,15 +91,20 @@ class RegisterUserController extends ChangeNotifier {
     }
   }
 
-  // === IBGE ===
   Future<void> _loadStates() async {
     loadingStates = true;
     notifyListeners();
-    final data = await ibgeService.getStates();
-    data.sort();
-    states = data;
-    loadingStates = false;
-    notifyListeners();
+    try {
+      final data = await ibgeService.getStates();
+      data.sort();
+      states = data;
+    } catch (e) {
+      // log opcional
+      debugPrint('[_loadStates] erro: $e');
+    } finally {
+      loadingStates = false;
+      notifyListeners();
+    }
   }
 
   Future<void> onSelectState(String? newStateName) async {
@@ -110,23 +115,35 @@ class RegisterUserController extends ChangeNotifier {
     loadingCities = true;
     notifyListeners();
 
-    final sigla = await ibgeService.getUfSigla(newStateName);
-    if (sigla != null) {
-      uf = sigla;
-      await loadCitiesForUF(sigla);
-    } else {
+    try {
+      final sigla = await ibgeService.getUfSigla(newStateName);
+      if (sigla != null) {
+        uf = sigla;
+        await loadCitiesForUF(sigla);
+      } else {
+        debugPrint('[onSelectState] UF não encontrada para "$newStateName"');
+      }
+    } catch (e) {
+      debugPrint('[onSelectState] erro: $e');
+    } finally {
       loadingCities = false;
       notifyListeners();
-      // mantém a UI responsável por exibir o erro se quiser
     }
   }
 
   Future<void> loadCitiesForUF(String ufSigla) async {
-    final data = await ibgeService.getCities(ufSigla);
-    data.sort();
-    cities = data;
-    loadingCities = false;
+    loadingCities = true;
     notifyListeners();
+    try {
+      final data = await ibgeService.getCities(ufSigla);
+      data.sort();
+      cities = data;
+    } catch (e) {
+      debugPrint('[loadCitiesForUF] erro: $e');
+    } finally {
+      loadingCities = false;
+      notifyListeners();
+    }
   }
 
   // === Localização atual (opcional) ===
@@ -187,18 +204,25 @@ class RegisterUserController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // === Envio ===
-  /// Envia somente os campos necessários pela sua API:
-  /// - name, email, password e opcionalmente phoneId (para notificações).
   Future<bool> submit({
     required String fullName,
     required String email,
     required String password,
-    String? phoneId, // passe o token do FCM/deviceId aqui quando tiver
+    String? phoneId, // token/ID do dispositivo (FCM)
+    String? phoneNumber, // se tiver um campo no form; pode ser null
   }) async {
     if (!acceptedTerms) {
       throw Exception('É necessário aceitar os Termos e a Política.');
     }
+
+    // city/state vêm das escolhas IBGE
+    final selectedCity = city?.trim();
+    final selectedState = (uf ?? stateName)?.trim(); // prioriza sigla (ex.: RS)
+
+    // avatar em Base64 (sem prefixo data:)
+    final profileImageBase64 = (avatarBytes != null && avatarBytes!.isNotEmpty)
+        ? base64Encode(avatarBytes!)
+        : null;
 
     loadingSubmit = true;
     notifyListeners();
@@ -207,7 +231,11 @@ class RegisterUserController extends ChangeNotifier {
         name: fullName.trim(),
         email: email.trim(),
         password: password,
-        // phoneNumber: null      // não enviar
+        phoneNumber: phoneNumber, // pode ser null
+        phoneId: phoneId, // pode ser null
+        city: selectedCity, // pode ser null
+        state: selectedState, // pode ser null (ex.: "RS")
+        profileImageBase64: profileImageBase64, // pode ser null
       );
       return ok;
     } finally {

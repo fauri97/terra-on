@@ -113,30 +113,36 @@ class AuthRepository {
     }
   }
 
+  // auth_repository.dart
+
   Future<bool> registerUser({
     required String name,
     required String email,
     required String password,
+    String? phoneNumber,
+    String? phoneId,
+    String? city,
+    String? state,
+    String? profileImageBase64,
   }) async {
-    final phoneId = 'nanfnfnqpinp31p4j1op4n1pnçoaçdaopn';
-
+    // Garante envio de todas as props exigidas pelo contrato:
     final body = <String, dynamic>{
       'name': name,
       'email': email,
       'password': password,
-      'phoneNumber': '981829368',
-      if (phoneId != null && phoneId.isNotEmpty) 'phoneId': phoneId,
-      // NÃO enviar phoneNumber, UF, cidade, etc.
+      'phoneNumber': (phoneNumber ?? '').trim(),
+      'phoneId': (phoneId ?? '').trim(),
+      'city': (city ?? '').trim(),
+      'state': (state ?? '').trim(),
+      'profileImageBase64': (profileImageBase64 ?? ''),
     };
 
     final resp = await _dio.post<Map<String, dynamic>>(
-      '/api/user', // troque pelo seu endpoint real
+      '/api/user',
       data: body,
       options: Options(contentType: 'application/json'),
     );
 
-    // Supondo que sua API siga o mesmo padrão:
-    // { statusCode: 0, message: "...", data: {...} }
     final statusCode = resp.data?['statusCode'] as int? ?? 1;
     if (statusCode != 201) {
       final msg = resp.data?['message']?.toString() ?? 'Falha ao cadastrar.';

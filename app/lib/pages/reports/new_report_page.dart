@@ -27,7 +27,7 @@ class _NewReportPageState extends State<NewReportPage> {
   bool _loading = false;
 
   // Localização
-  bool _useLocation = true;
+  bool _useLocation = false;
   bool _resolvingLocation = false;
 
   // UF / Cidade (IBGE)
@@ -38,6 +38,8 @@ class _NewReportPageState extends State<NewReportPage> {
   String? _city; // ex.: "Porto Alegre"
   bool _loadingStates = false;
   bool _loadingCities = false;
+  double? _lat = 0;
+  double? _lon = 0;
 
   // Fotos (múltiplas)
   final _picker = ImagePicker();
@@ -94,16 +96,31 @@ class _NewReportPageState extends State<NewReportPage> {
       return;
     }
 
-    if (geo.uf == null || geo.city == null) {
+    // Guarda lat/lon
+    _lat = geo.latitude;
+    _lon = geo.longitude;
+
+    // UF pode vir "RS" ou "Rio Grande do Sul"
+    String? ufSigla;
+    String? stateName;
+
+    if (geo.uf != null && geo.uf!.length == 2) {
+      // Parece sigla
+      ufSigla = geo.uf!;
+      stateName = _guessStateFromUF(ufSigla!);
+    } else if (geo.uf != null) {
+      // Parece nome do estado: tenta resolver a sigla pelo ibgeService
+      stateName = geo.uf!;
+      ufSigla = await ibgeService.getUfSigla(stateName!);
+    }
+
+    if (ufSigla == null || stateName == null) {
       if (!quiet && mounted) {
         await showDialog<void>(
           context: context,
           builder: (_) => const AlertDialog(
-            title: Text('Não foi possível obter sua cidade'),
-            content: Text(
-              'Não conseguimos detectar sua cidade neste momento.\n'
-              'Você pode preencher manualmente.',
-            ),
+            title: Text('Não foi possível obter sua UF'),
+            content: Text('Preencha manualmente o estado e a cidade.'),
           ),
         );
       }
@@ -111,24 +128,44 @@ class _NewReportPageState extends State<NewReportPage> {
       return;
     }
 
+    // Carrega cidades da UF e tenta selecionar a cidade detectada
     setState(() {
-      _uf = geo.uf; // "RS"
-      _stateName = _guessStateFromUF(_uf!);
+      _uf = ufSigla;
+      _stateName = stateName;
       _loadingCities = true;
     });
-    await _loadCitiesForUF(_uf!);
+    await _loadCitiesForUF(ufSigla);
 
-    final detected = _cities.firstWhere(
-      (c) => c.toLowerCase() == geo.city!.toLowerCase(),
-      orElse: () => '',
+    String? detectedCity;
+    if (geo.city != null) {
+      detectedCity = _cities.firstWhere(
+        (c) => c.toLowerCase() == geo.city!.toLowerCase(),
+        orElse: () => '',
+      );
+    }
+
+    // Preenche controles de endereço/bairro/CEP se vieram
+    if (geo.address != null && geo.address!.isNotEmpty) {
+      _addressController.text = geo.address!;
+    }
+    if (geo.district != null && geo.district!.isNotEmpty) {
+      _districtController.text = geo.district!;
+    }
+    if (geo.cep != null && geo.cep!.isNotEmpty) {
+      _cepController.text = geo.cep!;
+    }
+
+    setState(
+      () => _city = (detectedCity == null || detectedCity.isEmpty)
+          ? null
+          : detectedCity,
     );
-    setState(() => _city = detected.isEmpty ? null : detected);
 
     if (!quiet && mounted) {
+      final cityTxt = geo.city ?? _city ?? 'Cidade';
+      final ufTxt = ufSigla;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Localização aplicada: ${geo.city} - ${geo.uf}'),
-        ),
+        SnackBar(content: Text('Localização aplicada: $cityTxt - $ufTxt')),
       );
     }
   }
@@ -324,9 +361,8 @@ class _NewReportPageState extends State<NewReportPage> {
       authorId = 0;
     }
 
-    // lat/long placeholders por enquanto
-    const String lat = '0';
-    const String lon = '0';
+    final String lat = _lat != null ? _lat!.toStringAsFixed(6) : '';
+    final String lon = _lon != null ? _lon!.toStringAsFixed(6) : '';
 
     final imagesBase64 = <String>[];
     if (_photos.isNotEmpty) {

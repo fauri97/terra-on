@@ -1,3 +1,5 @@
+import 'package:app/services/geo_service.dart';
+import 'package:app/services/ibge_service.dart';
 import 'package:app/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,27 +13,25 @@ import 'app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Token storage + store
   final storage = await DefaultTokenStorage.create();
   final tokenStore = TokenStore(storage);
   await tokenStore.init();
 
-  // Auth repo (seu refresh usa o tokenStore)
   final authRepo = AuthRepository(tokenStore: tokenStore);
 
-  // Api client com interceptor de 401
   final apiClient = ApiClient.create(
     tokenStore: tokenStore,
-    onUnauthorized: () => authRepo.refresh(), // implemente refresh lá
+    onUnauthorized: () => authRepo.refresh(),
   );
 
-  // ← Registra providers
   runApp(
     MultiProvider(
       providers: [
         Provider<TokenStore>.value(value: tokenStore),
         Provider<AuthRepository>.value(value: authRepo),
         Provider<ApiClient>.value(value: apiClient),
+        Provider<IbgeService>(create: (_) => IbgeService()),
+        Provider<GeoService>(create: (_) => GeoService()),
         Provider<UserService>(
           create: (ctx) => UserService(
             api: ctx.read<ApiClient>(),

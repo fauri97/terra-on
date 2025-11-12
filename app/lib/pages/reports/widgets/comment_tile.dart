@@ -13,7 +13,7 @@ class CommentTile extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AvatarCircle(avatar: c.authorAvatar, size: 26), // <- mudou
+        AvatarCircle(avatar: c.authorAvatar, size: 26),
         const SizedBox(width: 8),
         Expanded(
           child: RichText(

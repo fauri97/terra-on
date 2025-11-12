@@ -23,6 +23,11 @@
         public string AuthorName { get; set; } = string.Empty;
         public InlineImageJson? AuthorAvatar { get; set; }   // avatar puro + contentType
     }
+    public sealed class LikesJson
+    {
+        public long UserId { get; set; }
+        public string UserName { get; set; } = string.Empty;
+    }
 
     public sealed class ResponseGetReportJson
     {
@@ -30,7 +35,7 @@
         public string Description { get; set; } = string.Empty;
         public long AuthorId { get; set; }
         public string AuthorName { get; set; } = string.Empty;
-
+        public int LikeCount { get; set; }
         public string Longitude { get; set; } = string.Empty;
         public string Latitude { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
@@ -40,8 +45,8 @@
         public string CEP { get; set; } = string.Empty;
 
         public InlineImageJson? AuthorAvatar { get; set; }   // avatar puro + contentType
-
+        public List<LikesJson> Likes { get; set; } = [];
         public List<CommentsJson> Comments { get; set; } = [];
-        public List<ReportImageJson> Images { get; set; } = []; // imagens do report
+        public List<ReportImageJson> Images { get; set; } = [];
     }
 }

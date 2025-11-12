@@ -59,14 +59,13 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
                 Row(
                   children: [
                     TextButton.icon(
-                      onPressed: () => Navigator.pushNamed(context, '/explore'),
+                      onPressed: () => context.go(AppRouter.main),
                       icon: const Icon(Icons.travel_explore_outlined),
                       label: const Text('Explorar'),
                     ),
                     if (isLoggedIn)
                       TextButton.icon(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/my-reports'),
+                        onPressed: () => context.go(AppRouter.myReports),
                         icon: const Icon(Icons.list_alt_outlined),
                         label: const Text('Minhas denúncias'),
                       ),
@@ -135,11 +134,11 @@ class _CollapsedActions extends StatelessWidget {
         switch (value) {
           case 'home':
             break;
-          case 'explore':
-            Navigator.pushNamed(context, '/explore');
+          case 'map':
+            context.go(AppRouter.reportMap);
             break;
           case 'myreports':
-            Navigator.pushNamed(context, '/my-reports');
+            context.go(AppRouter.myReports);
             break;
         }
       },
@@ -151,6 +150,13 @@ class _CollapsedActions extends StatelessWidget {
             title: Text('Início'),
           ),
           onTap: () => context.go(AppRouter.main),
+        ),
+        const PopupMenuItem(
+          value: 'map',
+          child: ListTile(
+            leading: Icon(Icons.map_rounded),
+            title: Text('Mapa'),
+          ),
         ),
         /*if (isLoggedIn)
           const PopupMenuItem(
@@ -196,7 +202,7 @@ class _ProfileMenu extends StatelessWidget {
             context.go(AppRouter.profile);
             break;
           case 'myreports':
-            Navigator.pushNamed(context, '/my-reports');
+            context.go(AppRouter.myReports);
             break;
           case 'config':
             ScaffoldMessenger.of(context).showSnackBar(

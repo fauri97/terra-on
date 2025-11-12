@@ -129,7 +129,6 @@ namespace TerraON.Infrastructure.DataAccess
 
             e.HasKey(l => new { l.UserId, l.ReportId });
 
-            // Relacionamentos
             e.HasOne(l => l.User)
              .WithMany()
              .HasForeignKey(l => l.UserId)

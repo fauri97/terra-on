@@ -32,6 +32,40 @@ class ReportsRepository {
     return api.data;
   }
 
+  Future<List<ReportItem>> getMyReports() async {
+    final resp = await _dio.get<Map<String, dynamic>>('/api/report/mine');
+    final json = resp.data ?? const {};
+    if (!_isOkStatus(json['statusCode'])) {
+      throw Exception(
+        (json['message'] as String?) ?? 'Falha ao minhas denuncias feed',
+      );
+    }
+    final api = ApiListResponse.fromJson(json, (m) => ReportItem.fromJson(m));
+    return api.data;
+  }
+
+  Future<ReportItem?> toggleLike(int reportId) async {
+    final userId = _tokenStore.userId;
+    if (userId == null) {
+      throw Exception('Usuário não logado: userId indisponível.');
+    }
+
+    final url = '/api/report/$reportId/user/$userId/like';
+
+    final resp = await _dio.post<Map<String, dynamic>>(url);
+    final json = resp.data ?? const {};
+
+    if (!_isOkStatus(json['statusCode'])) {
+      throw Exception((json['message'] as String?) ?? 'Falha ao alternar like');
+    }
+
+    final data = json['data'];
+    if (data is Map<String, dynamic>) {
+      return ReportItem.fromJson(data);
+    }
+    return null;
+  }
+
   Future<void> createCommentRaw({
     required int reportId,
     required int authorId,

@@ -1,6 +1,3 @@
-// lib/core/models/report_models.dart
-import 'dart:ffi';
-
 class ApiListResponse<T> {
   final int statusCode;
   final String? message;
@@ -20,6 +17,7 @@ class ApiListResponse<T> {
         .whereType<Map<String, dynamic>>()
         .map(fromMap)
         .toList();
+
     return ApiListResponse<T>(
       statusCode: json['statusCode'] is int ? json['statusCode'] as int : 0,
       message: json['message'] as String?,
@@ -40,7 +38,7 @@ class InlineImage {
     return InlineImage(
       base64: m['base64'] as String?,
       contentType: m['contentType'] as String?,
-      sizeBytes: m['sizeBytes'] is int ? m['sizeBytes'] as int : null,
+      sizeBytes: (m['sizeBytes'] as num?)?.toInt(),
     );
   }
 }
@@ -54,10 +52,10 @@ class ReportImage {
   ReportImage({this.id, this.base64, this.contentType, this.sizeBytes});
 
   factory ReportImage.fromMap(Map<String, dynamic> m) => ReportImage(
-    id: m['id'] is int ? m['id'] as int : null,
+    id: (m['id'] as num?)?.toInt(),
     base64: m['base64'] as String?,
     contentType: m['contentType'] as String?,
-    sizeBytes: m['sizeBytes'] is int ? m['sizeBytes'] as int : null,
+    sizeBytes: (m['sizeBytes'] as num?)?.toInt(),
   );
 }
 
@@ -87,11 +85,25 @@ class ReportComment {
   );
 }
 
+class ReportLike {
+  final int userId;
+  final String userName;
+
+  ReportLike({required this.userId, required this.userName});
+
+  factory ReportLike.fromMap(Map<String, dynamic> m) => ReportLike(
+    userId: (m['userId'] as num?)?.toInt() ?? 0,
+    userName: m['userName'] as String? ?? '',
+  );
+}
+
 class ReportItem {
   final int id;
   final String description;
   final int authorId;
   final String authorName;
+  final int likeCount;
+
   final String longitude;
   final String latitude;
   final String address;
@@ -101,6 +113,7 @@ class ReportItem {
   final String cep;
 
   final InlineImage? authorAvatar;
+  final List<ReportLike> likes;
   final List<ReportComment> comments;
   final List<ReportImage> images;
 
@@ -109,6 +122,7 @@ class ReportItem {
     required this.description,
     required this.authorId,
     required this.authorName,
+    required this.likeCount,
     required this.longitude,
     required this.latitude,
     required this.address,
@@ -117,6 +131,7 @@ class ReportItem {
     required this.bairro,
     required this.cep,
     required this.authorAvatar,
+    required this.likes,
     required this.comments,
     required this.images,
   });
@@ -126,6 +141,7 @@ class ReportItem {
     description: m['description'] as String? ?? '',
     authorId: (m['authorId'] as num?)?.toInt() ?? 0,
     authorName: m['authorName'] as String? ?? '',
+    likeCount: (m['likeCount'] as num?)?.toInt() ?? 0,
     longitude: m['longitude'] as String? ?? '',
     latitude: m['latitude'] as String? ?? '',
     address: m['address'] as String? ?? '',
@@ -136,6 +152,10 @@ class ReportItem {
     authorAvatar: InlineImage.fromMap(
       m['authorAvatar'] as Map<String, dynamic>?,
     ),
+    likes: (m['likes'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(ReportLike.fromMap)
+        .toList(),
     comments: (m['comments'] as List? ?? const [])
         .whereType<Map<String, dynamic>>()
         .map(ReportComment.fromMap)

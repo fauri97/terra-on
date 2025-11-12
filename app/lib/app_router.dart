@@ -3,6 +3,8 @@ import 'package:app/pages/auth/register_user_page.dart';
 import 'package:app/pages/login/login_page.dart';
 import 'package:app/pages/profile/profile_page.dart';
 import 'package:app/pages/reports/feed_page.dart';
+import 'package:app/pages/reports/my_reports_page.dart';
+import 'package:app/pages/reports/report_map_page.dart';
 import 'package:app/pages/terms_page.dart';
 import 'package:app/services/service_locator.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +19,8 @@ class AppRouter {
   static const String about = '/about';
   static const String terms = '/terms';
   static const String profile = '/profile';
+  static const String myReports = '/myreports';
+  static const String reportMap = '/reportmap';
 
   static final GoRouter router = GoRouter(
     initialLocation: main,
@@ -58,6 +62,16 @@ class AppRouter {
         builder: (context, state) {
           return const ProfilePage();
         },
+      ),
+      GoRoute(
+        path: myReports,
+        name: 'myreports',
+        builder: (context, state) => const MyReportsPage(),
+      ),
+      GoRoute(
+        path: reportMap,
+        name: 'reportmap',
+        builder: (context, state) => const ReportMapPage(),
       ),
     ],
   );

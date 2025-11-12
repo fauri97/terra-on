@@ -26,3 +26,4 @@ UserService get userService => _ctx().read<UserService>();
 AuthService get authService => _ctx().read<AuthService>();
 GeoService get geoService => _ctx().read<GeoService>();
 IbgeService get ibgeService => _ctx().read<IbgeService>();
+AuthService get authRepository => _ctx().read<AuthService>();
