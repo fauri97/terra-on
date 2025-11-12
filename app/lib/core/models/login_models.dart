@@ -25,12 +25,14 @@ class LoginData {
   final int id;
   final String name;
   final String email;
+  final String avatarBase64;
   final String accessToken;
 
   LoginData({
     required this.id,
     required this.name,
     required this.email,
+    required this.avatarBase64,
     required this.accessToken,
   });
 
@@ -38,6 +40,7 @@ class LoginData {
     id: json['id'] as int,
     name: json['name'] as String? ?? '',
     email: json['email'] as String? ?? '',
+    avatarBase64: json['avatarBase64'] as String? ?? '',
     accessToken: json['accessToken'] as String? ?? '',
   );
 }

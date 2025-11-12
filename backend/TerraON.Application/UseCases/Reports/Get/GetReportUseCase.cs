@@ -59,10 +59,10 @@ namespace TerraON.Application.UseCases.Reports.Get
 
             var list = reports.Select(r => new ResponseGetReportJson
             {
+                Id = r.Id,
                 Description = r.Description,
                 AuthorId = r.AuthorId,
                 AuthorName = r.Author?.Name ?? string.Empty,
-
                 Longitude = r.Longitude,
                 Latitude = r.Latitude,
                 Address = r.Address ?? string.Empty,

@@ -13,6 +13,7 @@ abstract class TokenStorage {
     required int userId,
     required String userName,
     required String userEmail,
+    String? userAvatarBase64,
   });
 
   // Leituras
@@ -21,6 +22,7 @@ abstract class TokenStorage {
   Future<int?> readUserId();
   Future<String?> readUserName();
   Future<String?> readUserEmail();
+  Future<String?> readUserAvatarBase64();
 
   // Limpa tudo
   Future<void> clear();
@@ -32,6 +34,7 @@ class DefaultTokenStorage implements TokenStorage {
   static const _kUserId = 'user_id';
   static const _kUserName = 'user_name';
   static const _kUserEmail = 'user_email';
+  static const _kUserAvatar = 'user_avatar_b64';
 
   final FlutterSecureStorage? _secure; // mobile
   final SharedPreferences? _prefs; // web
@@ -87,12 +90,16 @@ class DefaultTokenStorage implements TokenStorage {
     required int userId,
     required String userName,
     required String userEmail,
+    String? userAvatarBase64,
   }) async {
     await _writeString(_kAccess, access);
     await _writeString(_kRefresh, refresh);
     await _writeString(_kUserId, userId.toString());
     await _writeString(_kUserName, userName);
     await _writeString(_kUserEmail, userEmail);
+    if (userAvatarBase64 != null) {
+      await _writeString(_kUserAvatar, userAvatarBase64);
+    }
   }
 
   @override
@@ -115,11 +122,15 @@ class DefaultTokenStorage implements TokenStorage {
   Future<String?> readUserEmail() => _readString(_kUserEmail);
 
   @override
+  Future<String?> readUserAvatarBase64() => _readString(_kUserAvatar);
+
+  @override
   Future<void> clear() async {
     await _remove(_kAccess);
     await _remove(_kRefresh);
     await _remove(_kUserId);
     await _remove(_kUserName);
     await _remove(_kUserEmail);
+    await _remove(_kUserAvatar);
   }
 }

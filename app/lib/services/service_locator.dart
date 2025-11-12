@@ -1,30 +1,28 @@
-import 'auth_service.dart';
-import 'report_service.dart';
-import 'local_impl.dart';
+// sl_shim.dart
+import 'package:app/core/api_client.dart';
+import 'package:app/core/tokens/token_store.dart';
+import 'package:app/services/auth_service.dart';
+import 'package:app/services/geo_service.dart';
+import 'package:app/services/ibge_service.dart';
+import 'package:app/services/user_service.dart';
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 
-import 'geo_service.dart';
-import 'ibge_service.dart';
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
-/// TerraON — Service Locator
-///
-/// Centraliza as instâncias dos serviços da aplicação.
-/// Nesta fase, usamos implementações locais mínimas (sem dados fake),
-/// apenas para permitir navegação e estados neutros na UI.
-///
-/// Para ligar ao backend C#, substitua por:
-///   - HttpAuthService
-///   - HttpReportService
-///   - HttpGeoService / HttpIbgeService (Nominatim / IBGE)
-///
-/// Ex.:
-///   final AuthService authService = HttpAuthService(baseUrl: 'https://api.seudominio');
-///   final ReportService reportService = HttpReportService(baseUrl: 'https://api.seudominio');
-///   final GeoService geoService = HttpGeoService();
-///   final IbgeService ibgeService = HttpIbgeService();
+BuildContext _ctx() {
+  final ctx = appNavigatorKey.currentContext;
+  assert(
+    ctx != null,
+    'navigatorKey sem context — MaterialApp.navigatorKey não setado',
+  );
+  return ctx!;
+}
 
-final AuthService authService = LocalAuthService();
-final ReportService reportService = LocalReportService();
-
-// Serviços auxiliares (geolocalização e IBGE)
-final GeoService geoService = GeoService();
-final IbgeService ibgeService = IbgeService();
+/// Getters compatíveis com código legado que importava service_locator.dart
+TokenStore get tokenStore => _ctx().read<TokenStore>();
+ApiClient get apiClient => _ctx().read<ApiClient>();
+UserService get userService => _ctx().read<UserService>();
+AuthService get authService => _ctx().read<AuthService>();
+GeoService get geoService => _ctx().read<GeoService>();
+IbgeService get ibgeService => _ctx().read<IbgeService>();

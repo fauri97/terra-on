@@ -32,6 +32,26 @@ class ReportsRepository {
     return api.data;
   }
 
+  Future<void> createCommentRaw({
+    required int reportId,
+    required int authorId,
+    required String content,
+  }) async {
+    final body = {
+      "reportId": reportId,
+      "authorId": authorId,
+      "content": content,
+    };
+    final resp = await _dio.post<Map<String, dynamic>>(
+      '/api/comment',
+      data: body,
+    );
+
+    if (resp.statusCode! < 200 || resp.statusCode! >= 300) {
+      throw Exception('Falha ao enviar comentário (${resp.statusCode})');
+    }
+  }
+
   /// Cria denúncia já puxando o authorId do TokenStore
   Future<String?> createReportRaw({
     required String description,

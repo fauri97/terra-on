@@ -1,18 +1,32 @@
-// lib/pages/reports/widgets/report_card.dart
 import 'package:app/core/models/report_models.dart';
+import 'package:app/core/repositories/reports_repository.dart';
 import 'package:app/widgets/avatar_cicle.dart';
 import 'package:flutter/material.dart';
 import 'image_carousel.dart';
 import 'comment_tile.dart';
+import 'comment_composer.dart'; // <-- precisa desse import
 
-class ReportCard extends StatelessWidget {
+class ReportCard extends StatefulWidget {
   final ReportItem item;
 
   const ReportCard({super.key, required this.item});
 
   @override
+  State<ReportCard> createState() => _ReportCardState();
+}
+
+class _ReportCardState extends State<ReportCard> {
+  bool _showComposer = false; // controla visibilidade
+
+  void _toggleComposer() {
+    setState(() => _showComposer = !_showComposer);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     final cs = Theme.of(context).colorScheme;
+
     final showCity = [
       item.city,
       item.state,
@@ -26,12 +40,11 @@ class ReportCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header
+          // Cabeçalho
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
             child: Row(
               children: [
-                // >>> mudou: agora passa InlineImage
                 AvatarCircle(avatar: item.authorAvatar, size: 40),
                 const SizedBox(width: 10),
                 Expanded(
@@ -61,7 +74,7 @@ class ReportCard extends StatelessWidget {
             ),
           ),
 
-          // Texto
+          // Descrição
           if (item.description.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -71,7 +84,7 @@ class ReportCard extends StatelessWidget {
           // Imagens
           if (item.images.isNotEmpty) ReportImageCarousel(images: item.images),
 
-          // Barra de ações (mock)
+          // Barra de ações
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
@@ -81,8 +94,13 @@ class ReportCard extends StatelessWidget {
                   icon: const Icon(Icons.favorite_border),
                 ),
                 IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.mode_comment_outlined),
+                  onPressed:
+                      _toggleComposer, // agora abre o campo de comentário
+                  icon: Icon(
+                    _showComposer
+                        ? Icons.mode_comment
+                        : Icons.mode_comment_outlined,
+                  ),
                 ),
                 IconButton(
                   onPressed: () {},
@@ -97,7 +115,7 @@ class ReportCard extends StatelessWidget {
             ),
           ),
 
-          // Comentários (preview)
+          // Comentários (pré-visualização)
           if (item.comments.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -122,13 +140,28 @@ class ReportCard extends StatelessWidget {
                   if (item.comments.length > 3)
                     TextButton(
                       onPressed: () {
-                        // TODO: navegar para tela de comentários
+                        // TODO: abrir tela de todos os comentários
                       },
                       child: Text('Ver todos (${item.comments.length})'),
                     ),
                 ],
               ),
             ),
+
+          // Composer (visível só quando clicar)
+          if (_showComposer) ...[
+            Divider(height: 1, color: cs.outlineVariant),
+            CommentComposer(
+              reportId: item.id,
+              onCommentSent: (_) async {
+                final repo = context.reportsRepo();
+                final updated = await repo.getFeed(); // implemente este método
+                setState(() {
+                  _showComposer = false;
+                });
+              },
+            ),
+          ],
         ],
       ),
     );

@@ -26,6 +26,7 @@
 
     public sealed class ResponseGetReportJson
     {
+        public long Id { get; set; }
         public string Description { get; set; } = string.Empty;
         public long AuthorId { get; set; }
         public string AuthorName { get; set; } = string.Empty;

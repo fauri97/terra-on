@@ -83,6 +83,24 @@ mixin _$TokenStore on _TokenStore, Store {
     });
   }
 
+  late final _$userAvatarBase64Atom = Atom(
+    name: '_TokenStore.userAvatarBase64',
+    context: context,
+  );
+
+  @override
+  String? get userAvatarBase64 {
+    _$userAvatarBase64Atom.reportRead();
+    return super.userAvatarBase64;
+  }
+
+  @override
+  set userAvatarBase64(String? value) {
+    _$userAvatarBase64Atom.reportWrite(value, super.userAvatarBase64, () {
+      super.userAvatarBase64 = value;
+    });
+  }
+
   late final _$initAsyncAction = AsyncAction(
     '_TokenStore.init',
     context: context,
@@ -117,6 +135,7 @@ mixin _$TokenStore on _TokenStore, Store {
     required int id,
     required String name,
     required String email,
+    String? avatarBase64,
   }) {
     return _$setSessionAsyncAction.run(
       () => super.setSession(
@@ -125,6 +144,7 @@ mixin _$TokenStore on _TokenStore, Store {
         id: id,
         name: name,
         email: email,
+        avatarBase64: avatarBase64,
       ),
     );
   }
@@ -139,9 +159,15 @@ mixin _$TokenStore on _TokenStore, Store {
     required int id,
     required String name,
     required String email,
+    String? avatarBase64,
   }) {
     return _$setProfileAsyncAction.run(
-      () => super.setProfile(id: id, name: name, email: email),
+      () => super.setProfile(
+        id: id,
+        name: name,
+        email: email,
+        avatarBase64: avatarBase64,
+      ),
     );
   }
 
@@ -162,6 +188,7 @@ token: ${token},
 userId: ${userId},
 userName: ${userName},
 userEmail: ${userEmail},
+userAvatarBase64: ${userAvatarBase64},
 isLoggedIn: ${isLoggedIn}
     ''';
   }

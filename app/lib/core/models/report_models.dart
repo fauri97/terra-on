@@ -1,4 +1,6 @@
 // lib/core/models/report_models.dart
+import 'dart:ffi';
+
 class ApiListResponse<T> {
   final int statusCode;
   final String? message;
@@ -86,6 +88,7 @@ class ReportComment {
 }
 
 class ReportItem {
+  final int id;
   final String description;
   final int authorId;
   final String authorName;
@@ -102,6 +105,7 @@ class ReportItem {
   final List<ReportImage> images;
 
   ReportItem({
+    required this.id,
     required this.description,
     required this.authorId,
     required this.authorName,
@@ -118,6 +122,7 @@ class ReportItem {
   });
 
   factory ReportItem.fromJson(Map<String, dynamic> m) => ReportItem(
+    id: (m['id'] as num?)?.toInt() ?? 0,
     description: m['description'] as String? ?? '',
     authorId: (m['authorId'] as num?)?.toInt() ?? 0,
     authorName: m['authorName'] as String? ?? '',

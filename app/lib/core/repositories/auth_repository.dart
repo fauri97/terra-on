@@ -59,7 +59,6 @@ class AuthRepository {
       debugPrint('HTTP status: ${resp.statusCode}');
       debugPrint('RAW payload:\n${_pretty(resp.data)}');
 
-      // Ex.: { statusCode, message, data: { id, name, email, accessToken } }
       final api = ApiResponse.fromJson(
         resp.data!,
         (m) => LoginData.fromJson(m),
@@ -90,6 +89,7 @@ class AuthRepository {
           id: api.data.id,
           name: api.data.name,
           email: api.data.email,
+          avatarBase64: api.data.avatarBase64,
         );
       } catch (_) {
         // Se ainda não implementou setProfile, ignore.

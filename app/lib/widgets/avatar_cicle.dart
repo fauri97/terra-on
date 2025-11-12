@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import '../../core/models/report_models.dart'; // contém InlineImage
+import '../../core/models/report_models.dart';
 
 class AvatarCircle extends StatelessWidget {
-  final InlineImage? avatar; // <- mudou
+  final InlineImage? avatar;
   final double size;
 
   const AvatarCircle({super.key, required this.avatar, this.size = 36});
