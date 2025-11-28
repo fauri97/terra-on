@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using TerraON.API.Attributes;
 using TerraON.API.Responses;
 using TerraON.Application.UseCases.Reports.Create;
 using TerraON.Application.UseCases.Reports.Create.DTOs;
 using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Reports.Get.DTOs;
+using TerraON.Application.UseCases.Reports.Like;
 
 namespace TerraON.API.Controllers
 {
@@ -14,6 +17,7 @@ namespace TerraON.API.Controllers
         /// <summary>
         /// Cria uma novo denúncia.
         /// </summary>
+        [AuthenticatedUser]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ResponseBase<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ResponseBase<string>))]
@@ -54,6 +58,51 @@ namespace TerraON.API.Controllers
                 Data = reports
             };
 
+            return Ok(response);
+        }
+
+        /// <summary>  
+        /// Retorna todas as denúncias cadastrados pelo usuário autenticado.
+        /// </summary>
+        [AuthenticatedUser]
+        [HttpGet("mine")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseBase<List<ResponseGetReportJson>>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ResponseBase<string>))]
+        public async Task<ActionResult<ResponseBase<List<ResponseGetReportJson>>>> GetMyReports(
+            [FromServices] IGetReportUseCase useCase)
+        {
+            var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userIdentifier))
+                return Unauthorized("Identificador do usuário inválido.");
+
+
+            var reports = await useCase.GetMyReports(userIdentifier);
+            var response = new ResponseBase<List<ResponseGetReportJson>>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = reports.Count > 0
+                    ? "Seus relatórios foram encontrados com sucesso."
+                    : "Você não possui relatórios cadastrados.",
+                Data = reports
+            };
+            return Ok(response);
+        }
+
+        [AuthenticatedUser]
+        [HttpPost("{reportId}/user/{userId}/like")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseBase<string>))]
+        public async Task<ActionResult<ResponseBase<string>>> ToggleLike(
+            [FromServices] IToggleLikeUseCase useCase,
+            [FromRoute] long reportId,
+            [FromRoute] long userId)
+        {
+            await useCase.ExecuteAsync(reportId, userId);
+            var response = new ResponseBase<string>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Operação de like/dislike realizada com sucesso.",
+                Data = "OK"
+            };
             return Ok(response);
         }
     }

@@ -1,9 +1,14 @@
+import 'package:app/pages/about_page.dart';
 import 'package:app/pages/auth/register_user_page.dart';
-import 'package:app/pages/feed_page.dart';
 import 'package:app/pages/login/login_page.dart';
+import 'package:app/pages/profile/profile_page.dart';
+import 'package:app/pages/reports/feed_page.dart';
+import 'package:app/pages/reports/my_reports_page.dart';
+import 'package:app/pages/reports/report_map_page.dart';
+import 'package:app/pages/terms_page.dart';
+import 'package:app/services/service_locator.dart';
 import 'package:go_router/go_router.dart';
 
-import 'pages/explore_page.dart';
 import 'pages/reports/new_report_page.dart';
 
 class AppRouter {
@@ -11,9 +16,15 @@ class AppRouter {
   static const String register = '/register';
   static const String main = '/main';
   static const String newReport = '/newreport';
+  static const String about = '/about';
+  static const String terms = '/terms';
+  static const String profile = '/profile';
+  static const String myReports = '/myreports';
+  static const String reportMap = '/reportmap';
 
   static final GoRouter router = GoRouter(
-    initialLocation: main, // Página inicial do app
+    initialLocation: main,
+    navigatorKey: appNavigatorKey,
     routes: [
       GoRoute(
         path: login,
@@ -34,6 +45,33 @@ class AppRouter {
         path: newReport,
         name: 'newreport',
         builder: (context, state) => const NewReportPage(),
+      ),
+      GoRoute(
+        path: about,
+        name: 'about',
+        builder: (context, state) => const AboutPage(),
+      ),
+      GoRoute(
+        path: terms,
+        name: 'terms',
+        builder: (context, state) => const TermsPage(),
+      ),
+      GoRoute(
+        path: profile,
+        name: 'profile',
+        builder: (context, state) {
+          return const ProfilePage();
+        },
+      ),
+      GoRoute(
+        path: myReports,
+        name: 'myreports',
+        builder: (context, state) => const MyReportsPage(),
+      ),
+      GoRoute(
+        path: reportMap,
+        name: 'reportmap',
+        builder: (context, state) => const ReportMapPage(),
       ),
     ],
   );

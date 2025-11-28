@@ -4,7 +4,10 @@ using TerraON.Domain.Repositories.Reports;
 
 namespace TerraON.Infrastructure.DataAccess.Repositories
 {
-    public class ReportsRepository(TerraONDbContext context) : IReportWriteOnlyRepository, IReportReadOnlyRepository
+    public class ReportsRepository(TerraONDbContext context) : 
+        IReportWriteOnlyRepository,
+        IReportReadOnlyRepository,
+        ILikeRepository
     {
         private readonly TerraONDbContext _context = context;
         public async Task AddReportAsync(Report report)
@@ -19,7 +22,31 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
                 .Include(r => r.Author)
                 .Include(r => r.Images)
                 .Include(r => r.Comments)
+                    .ThenInclude(c => c.Author)
+                        .ThenInclude(a => a.ProfileImage)
                 .Include(r => r.Likes)
+                .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
+
+        public async Task<IEnumerable<Report>> GetByUserIdAsync(long userId)
+            => await _context.Reports
+                .AsSplitQuery()
+                .Where(r => r.AuthorId == userId)
+                .Include(r => r.Author)
+                .Include(r => r.Images)
+                .Include(r => r.Comments)
+                    .ThenInclude(c => c.Author)
+                        .ThenInclude(a => a.ProfileImage)
+                .Include(r => r.Likes)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+        public async Task Like(Like entity)
+            => await _context.AddAsync(entity);
+        public void Dislike(Like entity)
+            => _context.Remove(entity);
+        public async Task<Like?> GetLike(long reportId, long userId)
+            => await _context.Likes
+                .FirstOrDefaultAsync(l => l.ReportId == reportId && l.UserId == userId);
     }
 }

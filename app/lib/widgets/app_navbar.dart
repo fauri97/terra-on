@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:app/app_router.dart';
 import 'package:app/core/repositories/auth_repository.dart';
+import 'package:app/widgets/profile_avatar.dart'; // <-- novo import
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -20,15 +21,17 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
     final width = MediaQuery.of(context).size.width;
     final collapse = width < 560;
 
-    // MESMAS instâncias injetadas no main.dart
-    final store = context.read<TokenStore>();
     final auth = context.read<AuthRepository>();
 
     return Observer(
       builder: (_) {
-        final isLoggedIn =
-            store.isLoggedIn; // reativo (depende de @observable token)
-        final isAdmin = false; // ajuste quando tiver essa info
+        // Acessa a store dentro do Observer para reagir às mudanças
+        final store = context.read<TokenStore>();
+        final isLoggedIn = store.isLoggedIn;
+        final isAdmin = false;
+
+        // pega o base64 direto da store (pode vir com prefixo data:)
+        final avatarBase64 = store.userAvatarBase64;
 
         return AppBar(
           titleSpacing: 12,
@@ -56,14 +59,13 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
                 Row(
                   children: [
                     TextButton.icon(
-                      onPressed: () => Navigator.pushNamed(context, '/explore'),
+                      onPressed: () => context.go(AppRouter.main),
                       icon: const Icon(Icons.travel_explore_outlined),
                       label: const Text('Explorar'),
                     ),
                     if (isLoggedIn)
                       TextButton.icon(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/my-reports'),
+                        onPressed: () => context.go(AppRouter.myReports),
                         icon: const Icon(Icons.list_alt_outlined),
                         label: const Text('Minhas denúncias'),
                       ),
@@ -73,14 +75,14 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
                         child: FilledButton.icon(
                           icon: const Icon(Icons.add),
                           label: const Text('Nova denúncia'),
-                          onPressed: () =>
-                              context.go(AppRouter.newReport),
+                          onPressed: () => context.go(AppRouter.newReport),
                         ),
                       ),
                     const SizedBox(width: 8),
                     _ProfileMenu(
                       isLoggedIn: isLoggedIn,
                       isAdmin: isAdmin,
+                      avatarBase64: avatarBase64, // <-- passa base64
                       onLogout: () async {
                         await auth.logout();
                       },
@@ -96,8 +98,7 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
                         child: IconButton.filled(
                           tooltip: 'Nova denúncia',
                           icon: const Icon(Icons.add),
-                          onPressed: () =>
-                              context.go(AppRouter.newReport),
+                          onPressed: () => context.go(AppRouter.newReport),
                         ),
                       ),
                     _CollapsedActions(isLoggedIn: isLoggedIn),
@@ -105,6 +106,7 @@ class AppNavbar extends StatelessWidget implements PreferredSizeWidget {
                     _ProfileMenu(
                       isLoggedIn: isLoggedIn,
                       isAdmin: isAdmin,
+                      avatarBase64: avatarBase64, // <-- passa base64
                       onLogout: () async {
                         await auth.logout();
                       },
@@ -132,37 +134,38 @@ class _CollapsedActions extends StatelessWidget {
         switch (value) {
           case 'home':
             break;
-          case 'explore':
-            Navigator.pushNamed(context, '/explore');
+          case 'map':
+            context.go(AppRouter.reportMap);
             break;
           case 'myreports':
-            Navigator.pushNamed(context, '/my-reports');
+            context.go(AppRouter.myReports);
             break;
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'home',
-          child: ListTile(
+          child: const ListTile(
             leading: Icon(Icons.home_outlined),
             title: Text('Início'),
           ),
+          onTap: () => context.go(AppRouter.main),
         ),
         const PopupMenuItem(
-          value: 'explore',
+          value: 'map',
           child: ListTile(
-            leading: Icon(Icons.travel_explore_outlined),
-            title: Text('Explorar'),
+            leading: Icon(Icons.map_rounded),
+            title: Text('Mapa'),
           ),
         ),
-        if (isLoggedIn)
+        /*if (isLoggedIn)
           const PopupMenuItem(
             value: 'myreports',
             child: ListTile(
               leading: Icon(Icons.list_alt_outlined),
               title: Text('Minhas denúncias'),
             ),
-          ),
+          ), */
       ],
     );
   }
@@ -173,11 +176,13 @@ class _ProfileMenu extends StatelessWidget {
     required this.isLoggedIn,
     required this.isAdmin,
     required this.onLogout,
+    required this.avatarBase64, // <-- agora passa a string base64
   });
 
   final bool isLoggedIn;
   final bool isAdmin;
   final Future<void> Function() onLogout;
+  final String? avatarBase64;
 
   @override
   Widget build(BuildContext context) {
@@ -185,21 +190,19 @@ class _ProfileMenu extends StatelessWidget {
 
     return PopupMenuButton<String>(
       tooltip: 'Menu do perfil',
-      icon: CircleAvatar(
+      // Usa o novo widget aqui:
+      icon: ProfileAvatar(
+        base64Image: isLoggedIn ? avatarBase64 : null,
+        size: 32,
         backgroundColor: scheme.primaryContainer,
-        child: Icon(Icons.person, color: scheme.onPrimaryContainer),
       ),
       onSelected: (value) async {
         switch (value) {
           case 'perfil':
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Perfil indisponível (fase inicial).'),
-              ),
-            );
+            context.go(AppRouter.profile);
             break;
           case 'myreports':
-            Navigator.pushNamed(context, '/my-reports');
+            context.go(AppRouter.myReports);
             break;
           case 'config':
             ScaffoldMessenger.of(context).showSnackBar(
@@ -207,15 +210,13 @@ class _ProfileMenu extends StatelessWidget {
             );
             break;
           case 'termos':
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Página de Termos em breve.')),
-            );
+            context.go(AppRouter.terms);
             break;
           case 'sobre':
-            Navigator.pushNamed(context, '/about');
+            context.go(AppRouter.about);
             break;
           case 'sair':
-            await onLogout(); // zera token -> guard do GoRouter te manda pro login
+            await onLogout();
             break;
           case 'entrar':
             context.go(AppRouter.login);

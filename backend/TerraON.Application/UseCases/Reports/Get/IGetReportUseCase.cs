@@ -5,5 +5,7 @@ namespace TerraON.Application.UseCases.Reports.Get
     public interface IGetReportUseCase
     {
         public Task<List<ResponseGetReportJson>> ExecuteAsync();
+
+        public Task<List<ResponseGetReportJson>> GetMyReports(Guid userIdentifier);
     }
 }

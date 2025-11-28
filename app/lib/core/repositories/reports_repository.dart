@@ -1,13 +1,13 @@
-// lib/core/repositories/reports_repository.dart
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app/core/models/api_response.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../api_client.dart';
-import '../models/report_models.dart';
+import '../models/report_models.dart' hide ApiListResponse;
 import '../tokens/token_store.dart';
 
 class ReportsRepository {
@@ -32,6 +32,60 @@ class ReportsRepository {
     return api.data;
   }
 
+  Future<List<ReportItem>> getMyReports() async {
+    final resp = await _dio.get<Map<String, dynamic>>('/api/report/mine');
+    final json = resp.data ?? const {};
+    if (!_isOkStatus(json['statusCode'])) {
+      throw Exception(
+        (json['message'] as String?) ?? 'Falha ao minhas denuncias feed',
+      );
+    }
+    final api = ApiListResponse.fromJson(json, (m) => ReportItem.fromJson(m));
+    return api.data;
+  }
+
+  Future<ReportItem?> toggleLike(int reportId) async {
+    final userId = _tokenStore.userId;
+    if (userId == null) {
+      throw Exception('Usuário não logado: userId indisponível.');
+    }
+
+    final url = '/api/report/$reportId/user/$userId/like';
+
+    final resp = await _dio.post<Map<String, dynamic>>(url);
+    final json = resp.data ?? const {};
+
+    if (!_isOkStatus(json['statusCode'])) {
+      throw Exception((json['message'] as String?) ?? 'Falha ao alternar like');
+    }
+
+    final data = json['data'];
+    if (data is Map<String, dynamic>) {
+      return ReportItem.fromJson(data);
+    }
+    return null;
+  }
+
+  Future<void> createCommentRaw({
+    required int reportId,
+    required int authorId,
+    required String content,
+  }) async {
+    final body = {
+      "reportId": reportId,
+      "authorId": authorId,
+      "content": content,
+    };
+    final resp = await _dio.post<Map<String, dynamic>>(
+      '/api/comment',
+      data: body,
+    );
+
+    if (resp.statusCode! < 200 || resp.statusCode! >= 300) {
+      throw Exception('Falha ao enviar comentário (${resp.statusCode})');
+    }
+  }
+
   /// Cria denúncia já puxando o authorId do TokenStore
   Future<String?> createReportRaw({
     required String description,
@@ -44,14 +98,14 @@ class ReportsRepository {
     String cep = '',
     List<String> imagesBase64 = const [],
   }) async {
-    final authorId = _tokenStore.userId; // << pega do login salvo
+    final authorId = _tokenStore.userId;
     if (authorId == null) {
       throw Exception('Usuário não logado: authorId indisponível.');
     }
 
     final payload = <String, dynamic>{
       "description": description,
-      "authorId": authorId, // << agora sempre vai como int
+      "authorId": authorId,
       "longitude": longitude,
       "latitude": latitude,
       "address": address,
@@ -88,8 +142,6 @@ class ReportsRepository {
 
 /// Conveniência via Provider
 extension ReportsRepoX on BuildContext {
-  ReportsRepository reportsRepo() => ReportsRepository(
-    read<ApiClient>(),
-    read<TokenStore>(), // <- injeta o TokenStore
-  );
+  ReportsRepository reportsRepo() =>
+      ReportsRepository(read<ApiClient>(), read<TokenStore>());
 }

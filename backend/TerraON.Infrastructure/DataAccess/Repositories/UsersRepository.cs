@@ -21,6 +21,7 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
         public async Task<User?> GetByEmail(string email)
             => await _dbContext.Users
                 .AsNoTracking()
+                .Include(img => img.ProfileImage)
                 .FirstOrDefaultAsync(u => u.Email == email);
 
         public async Task<bool> ExistActiveUserWithEmail(string email)

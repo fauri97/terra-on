@@ -29,6 +29,9 @@ namespace TerraON.Application.UseCases.Users.Login
                 Id = user.Id,
                 Email = dto.Email,
                 Name = user.Name,
+                AvatarBase64 = user.ProfileImage is not null
+                    ? Convert.ToBase64String(user.ProfileImage.Data)
+                    : null,
                 AccessToken = _accessTokenGenerator.Generate(user)
             };
         }

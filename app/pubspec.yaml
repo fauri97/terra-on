@@ -45,6 +45,10 @@ dependencies:
   mobx: ^2.5.0
   provider: ^6.1.5+1
   flutter_mobx: ^2.3.0
+  geocoding: ^4.0.0
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  flutter_map_marker_cluster: ^8.2.2
 
 dev_dependencies:
   flutter_test:

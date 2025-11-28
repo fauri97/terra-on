@@ -1,25 +1,31 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../core/tokens/token_store.dart';
-import 'service_locator.dart';
+import '../core/api_client.dart';
 
 class UserService {
-  final Dio http;
+  final ApiClient api;
   final TokenStore tokenStore;
 
-  UserService({
-    required this.http,
-    required this.tokenStore,
-  });
+  UserService({required this.api, required this.tokenStore});
 
   /// GET /api/user/me
   Future<Map<String, dynamic>?> getMyProfile() async {
+    print('[UserService] → getMyProfile iniciado...');
     try {
-      final resp = await http.get('/api/user/me');
-      final data = resp.data['data'];
-
-      return data;
+      final resp = await api.dio.get('/api/user/me');
+      print('[UserService] ← resposta status: ${resp.statusCode}');
+      print('[UserService] ← corpo: ${resp.data}');
+      final data = resp.data is Map<String, dynamic>
+          ? (resp.data['data'] ?? resp.data)
+          : resp.data;
+      return data is Map<String, dynamic> ? data : null;
+    } on DioException catch (e) {
+      print('[UserService] ✖ Erro Dio: ${e.message}');
+      print('[UserService] ✖ Response: ${e.response?.data}');
+      return null;
     } catch (e) {
+      print('[UserService] ✖ Erro inesperado: $e');
       return null;
     }
   }
@@ -30,41 +36,36 @@ class UserService {
     required String name,
     required String email,
     required String city,
-    required String uf, // no front é UF, mas no back é state
+    required String uf,
     String? base64Image,
   }) async {
+    print('[UserService] → updateProfile chamado (id=$id)');
     try {
       final body = {
         "name": name,
-        "phoneNumber": "",          // depois ajusta se tiver telefone
+        "phoneNumber": "",
         "city": city,
-        "state": uf,                // backend espera "state"
+        "state": uf,
         "base64ProfileImage": base64Image ?? "",
       };
+      print('[UserService] → body enviado: $body');
 
-      await http.put('/api/user/$id', data: body);
+      final resp = await api.dio.put('/api/user/$id', data: body);
+      print('[UserService] ← resposta status: ${resp.statusCode}');
 
-      // atualiza local (nome e email)
       await tokenStore.setProfile(id: id, name: name, email: email);
+      print('[UserService] ✔ tokenStore atualizado');
 
       return true;
+    } on DioException catch (e) {
+      print('[UserService] ✖ Erro Dio: ${e.message}');
+      print('[UserService] ✖ Response: ${e.response?.data}');
+      return false;
     } catch (e) {
+      print('[UserService] ✖ Erro inesperado: $e');
       return false;
     }
   }
 
-  /// utilitário (converte bytes → base64)
-  String imageBytesToBase64(List<int> bytes) {
-    return base64Encode(bytes);
-  }
-}
-
-/// instancia global
-late final UserService userService;
-
-void setupUserService() {
-  userService = UserService(
-    http: apiClient.dio,
-    tokenStore: tokenStore,
-  );
+  String imageBytesToBase64(List<int> bytes) => base64Encode(bytes);
 }

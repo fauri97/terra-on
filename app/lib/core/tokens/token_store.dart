@@ -22,6 +22,9 @@ abstract class _TokenStore with Store {
   @observable
   String? userEmail;
 
+  @observable
+  String? userAvatarBase64;
+
   @computed
   bool get isLoggedIn => (token ?? '').isNotEmpty;
 
@@ -32,6 +35,7 @@ abstract class _TokenStore with Store {
     userId = await storage.readUserId();
     userName = await storage.readUserName();
     userEmail = await storage.readUserEmail();
+    userAvatarBase64 = await storage.readUserAvatarBase64();
   }
 
   /// Define **apenas** o token (retrocompatível). Prefira `setSession`.
@@ -53,6 +57,7 @@ abstract class _TokenStore with Store {
     required int id,
     required String name,
     required String email,
+    String? avatarBase64,
   }) async {
     await storage.saveSession(
       access: accessToken,
@@ -60,21 +65,22 @@ abstract class _TokenStore with Store {
       userId: id,
       userName: name,
       userEmail: email,
+      userAvatarBase64: avatarBase64,
     );
     token = accessToken;
     userId = id;
     userName = name;
     userEmail = email;
+    userAvatarBase64 = avatarBase64;
   }
 
-  /// (Opcional) somente atualizar perfil, mantendo o token atual.
   @action
   Future<void> setProfile({
     required int id,
     required String name,
     required String email,
+    String? avatarBase64,
   }) async {
-    // regrava sessão com o token atual
     final currentToken = token ?? '';
     final currentRefresh = await storage.readRefresh() ?? '';
     await storage.saveSession(
@@ -83,13 +89,14 @@ abstract class _TokenStore with Store {
       userId: id,
       userName: name,
       userEmail: email,
+      userAvatarBase64: avatarBase64 ?? userAvatarBase64,
     );
     userId = id;
     userName = name;
     userEmail = email;
+    if (avatarBase64 != null) userAvatarBase64 = avatarBase64;
   }
 
-  /// Faz logout (limpa tudo).
   @action
   Future<void> clear() async {
     await storage.clear();
@@ -97,5 +104,6 @@ abstract class _TokenStore with Store {
     userId = null;
     userName = null;
     userEmail = null;
+    userAvatarBase64 = null;
   }
 }

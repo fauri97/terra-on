@@ -1,9 +1,13 @@
-import 'package:app/core/repositories/auth_repository.dart';
+import 'package:app/services/geo_service.dart';
+import 'package:app/services/ibge_service.dart';
+import 'package:app/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/tokens/token_storage.dart';
 import 'core/tokens/token_store.dart';
 import 'core/api_client.dart';
+import 'core/repositories/auth_repository.dart';
+import 'services/user_service.dart';
 import 'app_router.dart';
 
 Future<void> main() async {
@@ -14,6 +18,7 @@ Future<void> main() async {
   await tokenStore.init();
 
   final authRepo = AuthRepository(tokenStore: tokenStore);
+
   final apiClient = ApiClient.create(
     tokenStore: tokenStore,
     onUnauthorized: () => authRepo.refresh(),
@@ -25,6 +30,14 @@ Future<void> main() async {
         Provider<TokenStore>.value(value: tokenStore),
         Provider<AuthRepository>.value(value: authRepo),
         Provider<ApiClient>.value(value: apiClient),
+        Provider<IbgeService>(create: (_) => IbgeService()),
+        Provider<GeoService>(create: (_) => GeoService()),
+        Provider<UserService>(
+          create: (ctx) => UserService(
+            api: ctx.read<ApiClient>(),
+            tokenStore: ctx.read<TokenStore>(),
+          ),
+        ),
       ],
       child: const TerraONApp(),
     ),
@@ -33,6 +46,7 @@ Future<void> main() async {
 
 class TerraONApp extends StatelessWidget {
   const TerraONApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(

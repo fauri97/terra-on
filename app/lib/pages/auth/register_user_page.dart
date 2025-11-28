@@ -48,13 +48,11 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
   }
 
   Future<void> _submit() async {
-    // Valida campos locais + UF/Cidade
     final validFields = _formKey.currentState!.validate();
     final hasUf = (c.stateName ?? '').trim().isNotEmpty;
     final hasCity = (c.city ?? '').trim().isNotEmpty;
 
     if (!validFields || !hasUf || !hasCity) {
-      // Força exibir mensagens se UF/Cidade não preenchidos
       if (!hasUf) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Selecione o Estado (UF).')),
@@ -231,10 +229,12 @@ class _RegisterUserPageState extends State<RegisterUserPage> {
 
                   const SizedBox(height: 12),
                   // UF + Cidade (IBGE) + My Location
-                  if (c.loadingStates)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: LinearProgressIndicator(minHeight: 2),
+                  if (!c.loadingStates && c.states.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        'Não foi possível carregar os Estados (IBGE).',
+                      ),
                     )
                   else
                     LayoutBuilder(
