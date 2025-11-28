@@ -20,6 +20,7 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
             => await _context.Reports
                 .AsSplitQuery()
                 .Include(r => r.Author)
+                    .ThenInclude(p => p.ProfileImage)
                 .Include(r => r.Images)
                 .Include(r => r.Comments)
                     .ThenInclude(c => c.Author)
@@ -33,6 +34,7 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
                 .AsSplitQuery()
                 .Where(r => r.AuthorId == userId)
                 .Include(r => r.Author)
+                    .ThenInclude(p => p.ProfileImage)
                 .Include(r => r.Images)
                 .Include(r => r.Comments)
                     .ThenInclude(c => c.Author)

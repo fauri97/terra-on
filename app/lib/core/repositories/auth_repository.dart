@@ -125,7 +125,6 @@ class AuthRepository {
     String? state,
     String? profileImageBase64,
   }) async {
-    // Garante envio de todas as props exigidas pelo contrato:
     final body = <String, dynamic>{
       'name': name,
       'email': email,
