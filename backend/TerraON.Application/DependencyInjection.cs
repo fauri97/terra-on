@@ -5,6 +5,7 @@ using TerraON.Application.Services.Cryptography;
 using TerraON.Application.UseCases.Admin.Dashboard;
 using TerraON.Application.UseCases.Comments.Create;
 using TerraON.Application.UseCases.ReportPosts.Create;
+using TerraON.Application.UseCases.ReportPosts.Get;
 using TerraON.Application.UseCases.Reports.Create;
 using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Reports.Like;
@@ -53,6 +54,7 @@ namespace TerraON.Application
             services.AddScoped<ICreateCommentUseCase, CreateCommentUseCase>();
 
             services.AddScoped<ICreateReportPostsUseCase, CreateReportPostsUseCase>();
+            services.AddScoped<IGetReportPostsUseCase, GetReportPostsUseCase>();
 
             services.AddScoped<IGetAdminDashboardUseCase, GetAdminDashboardUseCase>();
         }

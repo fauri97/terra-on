@@ -8,11 +8,7 @@
       <!-- Topbar -->
       <header class="w-full navbar bg-base-100 shadow-sm px-4 lg:px-6">
         <div class="flex-none lg:hidden">
-          <label
-            for="sidebar-toggle"
-            class="btn btn-ghost btn-square"
-            aria-label="Abrir menu lateral"
-          >
+          <label for="sidebar-toggle" class="btn btn-ghost btn-square" aria-label="Abrir menu lateral">
             <span class="flex flex-col items-center justify-center gap-[3px]" aria-hidden="true">
               <span class="w-4 h-0.5 rounded-full bg-base-content"></span>
               <span class="w-4 h-0.5 rounded-full bg-base-content"></span>
@@ -44,18 +40,13 @@
             <label tabindex="0" class="btn btn-ghost btn-circle avatar">
               <div class="w-9 rounded-full border border-base-300">
                 <img v-if="authStore.userAvatarSrc" :src="authStore.userAvatarSrc" alt="Avatar" />
-                <div
-                  v-else
-                  class="w-full h-full flex items-center justify-center bg-primary text-primary-content text-xs font-bold"
-                >
+                <div v-else
+                  class="w-full h-full flex items-center justify-center bg-primary text-primary-content text-xs font-bold">
                   {{ initials }}
                 </div>
               </div>
             </label>
-            <ul
-              tabindex="0"
-              class="mt-3 z-50 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
-            >
+            <ul tabindex="0" class="mt-3 z-50 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
               <li class="menu-title text-xs">Conta</li>
               <li>
                 <button type="button">Perfil (em breve)</button>
@@ -78,9 +69,7 @@
     <div class="drawer-side">
       <label for="sidebar-toggle" class="drawer-overlay"></label>
 
-      <aside
-        class="w-72 bg-base-100 text-base-content border-r border-base-200 flex flex-col min-h-screen"
-      >
+      <aside class="w-72 bg-base-100 text-base-content border-r border-base-200 flex flex-col min-h-screen">
         <!-- Logo / título -->
         <div class="flex items-center gap-3 px-4 py-4 border-b border-base-200">
           <div class="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center">
@@ -96,9 +85,7 @@
           <ul class="px-3 space-y-5 text-sm">
             <!-- VISÃO GERAL -->
             <li>
-              <p
-                class="text-[11px] font-semibold tracking-wider uppercase text-base-content/50 mb-2"
-              >
+              <p class="text-[11px] font-semibold tracking-wider uppercase text-base-content/50 mb-2">
                 Visão geral
               </p>
               <ul class="space-y-1">
@@ -113,9 +100,7 @@
 
             <!-- CONTEÚDO -->
             <li>
-              <p
-                class="text-[11px] font-semibold tracking-wider uppercase text-base-content/50 mb-2"
-              >
+              <p class="text-[11px] font-semibold tracking-wider uppercase text-base-content/50 mb-2">
                 Conteúdo
               </p>
               <ul class="space-y-1">
@@ -125,21 +110,12 @@
                     <span>Denúncias</span>
                   </RouterLink>
                 </li>
-
-                <li>
-                  <RouterLink :to="{ name: 'cities' }" :class="menuItem('cities')">
-                    <span class="material-symbols-outlined text-lg">report</span>
-                    <span>Denúncias de Posts</span>
-                  </RouterLink>
-                </li>
               </ul>
             </li>
 
             <!-- ADMINISTRAÇÃO -->
             <li>
-              <p
-                class="text-[11px] font-semibold tracking-wider uppercase text-base-content/50 mb-2"
-              >
+              <p class="text-[11px] font-semibold tracking-wider uppercase text-base-content/50 mb-2">
                 Administração
               </p>
               <ul class="space-y-1">
@@ -147,6 +123,13 @@
                   <RouterLink :to="{ name: 'users' }" :class="menuItem('users')">
                     <span class="material-symbols-outlined text-lg">group</span>
                     <span>Usuários</span>
+                  </RouterLink>
+                </li>
+
+                <li>
+                  <RouterLink :to="{ name: 'cities' }" :class="menuItem('cities')">
+                    <span class="material-symbols-outlined text-lg">report</span>
+                    <span>Denúncias de Posts</span>
                   </RouterLink>
                 </li>
 

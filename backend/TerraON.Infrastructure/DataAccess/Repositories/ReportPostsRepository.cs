@@ -12,6 +12,10 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
             => await context.ReportPosts.AddAsync(reportPost);
 
         public async Task<IEnumerable<ReportPost>> GetAllAsync()
-            => await context.ReportPosts.ToListAsync();
+            => await context.ReportPosts
+                .Include(rp => rp.Report)
+                .Include(rp => rp.User)
+                    .ThenInclude(u => u.ProfileImage)
+                .ToListAsync();
     }
 }

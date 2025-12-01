@@ -48,6 +48,7 @@ namespace TerraON.Infrastructure
             services.AddScoped<ICommentReadOnlyRepository, CommentsRepository>();
 
             services.AddScoped<IReportPostsWriteOnlyRepository, ReportPostsRepository>();
+            services.AddScoped<IReportPostsReadOnlyRepository, ReportPostsRepository>();
         }
 
         private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
