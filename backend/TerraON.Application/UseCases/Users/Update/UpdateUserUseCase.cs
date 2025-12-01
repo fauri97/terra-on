@@ -34,6 +34,17 @@ namespace TerraON.Application.UseCases.Users.Update
             if (!string.IsNullOrWhiteSpace(request.State))
                 user.State = request.State!.Trim();
 
+            if (!string.IsNullOrWhiteSpace(request.Role))
+            {
+                user.Role = request.Role!.Trim().ToLowerInvariant() switch
+                {
+                    "admin" => UserRole.Admin,
+                    "user" => UserRole.User,
+                    "gov" => UserRole.Gov,
+                    _ => throw new BusinessValidationException(["Função (role) inválida."]),
+                };
+            }
+
             // Imagem de perfil
             if (!string.IsNullOrWhiteSpace(request.Base64ProfileImage))
             {

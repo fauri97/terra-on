@@ -2,11 +2,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using TerraON.Application.Services.AutoMapper;
 using TerraON.Application.Services.Cryptography;
+using TerraON.Application.UseCases.Admin.Dashboard;
 using TerraON.Application.UseCases.Comments.Create;
+using TerraON.Application.UseCases.ReportPosts.Create;
 using TerraON.Application.UseCases.Reports.Create;
 using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Reports.Like;
+using TerraON.Application.UseCases.Users.Get.All;
 using TerraON.Application.UseCases.Users.Get.Me;
+using TerraON.Application.UseCases.Users.HandleActivation;
 using TerraON.Application.UseCases.Users.Login;
 using TerraON.Application.UseCases.Users.Register;
 using TerraON.Application.UseCases.Users.Update;
@@ -38,13 +42,19 @@ namespace TerraON.Application
             services.AddScoped<ICreateUserUseCase, CreateUserUseCase>();
             services.AddScoped<IDoLoginUseCase, DoLoginUseCase>();
             services.AddScoped<IGetMyselfUserUseCase, GetMyselfUserUseCase>();
+            services.AddScoped<IGetUsersUseCase, GetUsersUseCase>();
             services.AddScoped<IUpdateUserUseCase, UpdateUserUseCase>();
+            services.AddScoped<IHandleUserActivityUseCase, HandleUserActivityUseCase>();
 
             services.AddScoped<ICreateReportUseCase, CreateReportUseCase>();
             services.AddScoped<IGetReportUseCase, GetReportUseCase>();
             services.AddScoped<IToggleLikeUseCase, ToggleLikeUseCase>();
 
             services.AddScoped<ICreateCommentUseCase, CreateCommentUseCase>();
+
+            services.AddScoped<ICreateReportPostsUseCase, CreateReportPostsUseCase>();
+
+            services.AddScoped<IGetAdminDashboardUseCase, GetAdminDashboardUseCase>();
         }
     }
 }

@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TerraON.API.Attributes;
 using TerraON.API.Responses;
+using TerraON.Application.UseCases.Users.Get.All;
+using TerraON.Application.UseCases.Users.Get.All.DTOs;
 using TerraON.Application.UseCases.Users.Get.Me;
 using TerraON.Application.UseCases.Users.Get.Me.DTOs;
+using TerraON.Application.UseCases.Users.HandleActivation;
 using TerraON.Application.UseCases.Users.Register;
 using TerraON.Application.UseCases.Users.Register.DTOs;
 using TerraON.Application.UseCases.Users.Update;
@@ -61,6 +64,23 @@ namespace TerraON.API.Controllers
         }
 
         [AuthenticatedUser]
+        [HttpGet("")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseBase<List<ResponseGetAllUsersJson>>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ResponseBase<string>))]
+        public async Task<ActionResult<ResponseBase<ResponseGetMyselfUserJSon>>> GetAllUsers(
+            [FromServices] IGetUsersUseCase useCase)
+        {
+            var usersData = await useCase.ExecuteAsync();
+            var response = new ResponseBase<List<ResponseGetAllUsersJson>>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Dados dos usuários obtidos com sucesso.",
+                Data = usersData
+            };
+            return Ok(response);
+        }
+
+        [AuthenticatedUser]
         [HttpPut("{Id}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseBase<string>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ResponseBase<string>))]
@@ -70,6 +90,24 @@ namespace TerraON.API.Controllers
             [FromRoute] long Id)
         {
             await useCase.Update(Id,request);
+            var response = new ResponseBase<string>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Usuário atualizado com sucesso.",
+                Data = null
+            };
+            return Ok(response);
+        }
+
+        [AuthenticatedUser]
+        [HttpPut("Activity/{Id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseBase<string>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ResponseBase<string>))]
+        public async Task<ActionResult<ResponseBase<string>>> UpdateUser(
+            [FromServices] IHandleUserActivityUseCase useCase,
+            [FromRoute] long Id)
+        {
+            await useCase.Execute(Id);
             var response = new ResponseBase<string>
             {
                 StatusCode = StatusCodes.Status200OK,

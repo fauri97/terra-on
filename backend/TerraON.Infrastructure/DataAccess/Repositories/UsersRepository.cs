@@ -18,11 +18,11 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
             => await _dbContext.Users
             .Include(img => img.ProfileImage)
             .FirstOrDefaultAsync(u => u.Id == id);
-        public async Task<User?> GetByEmail(string email)
+        public async Task<User?> GetByNormalizedEmail(string email)
             => await _dbContext.Users
                 .AsNoTracking()
                 .Include(img => img.ProfileImage)
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.NormalizedEmail == email);
 
         public async Task<bool> ExistActiveUserWithEmail(string email)
             => await _dbContext.Users
@@ -30,7 +30,6 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
                 .AnyAsync(u => u.Email == email && !u.IsDeleted);
 
         public async Task<User?> GetByUserIdentifier(Guid userIdentifier)
-           
             => await _dbContext.Users
                 .Include(img => img.ProfileImage)
                 .FirstOrDefaultAsync(u => u.UserIdentifier == userIdentifier);
@@ -42,5 +41,11 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
 
         public void Update(User user)
             => _dbContext.Users.Update(user);
+
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+            => await _dbContext.Users
+                .AsNoTracking()
+                .Include(img => img.ProfileImage)
+                .ToListAsync();
     }
 }

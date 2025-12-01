@@ -12,8 +12,19 @@
         public string State { get; set; } = string.Empty;
         public string Bairro { get; set; } = string.Empty;
         public string CEP { get; set; } = string.Empty;
+        public ReportStatus Status { get; set; } = ReportStatus.Pending;
         public ICollection<Image> Images { get; set; } = [];
         public ICollection<Comment> Comments { get; set; } = [];
         public ICollection<Like> Likes { get; set; } = [];
+    }
+
+    public enum ReportStatus
+    {
+        Pending,
+        InProgress,
+        Resolved,
+        Dismissed,
+        Inappropriate,
+        Diactivated
     }
 }

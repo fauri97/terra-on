@@ -13,5 +13,14 @@
         public string? State { get; set; }
         public long? ProfileImageId { get; set; }
         public Image? ProfileImage { get; set; }
+        public UserRole Role { get; set; }
+
+    }
+
+    public enum UserRole
+    {
+        Admin,
+        User,
+        Gov,
     }
 }

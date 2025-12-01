@@ -11,6 +11,7 @@ namespace TerraON.Infrastructure.DataAccess
         public DbSet<Image> Images { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
+        public DbSet<ReportPost> ReportPosts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -20,6 +21,7 @@ namespace TerraON.Infrastructure.DataAccess
             ConfigureImage(modelBuilder);
             ConfigureComment(modelBuilder);
             ConfigureLike(modelBuilder);
+            ConfigureReportPost(modelBuilder);
 
             var dtConverter = new ValueConverter<DateTime, DateTime>(
                 v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
@@ -47,6 +49,22 @@ namespace TerraON.Infrastructure.DataAccess
             }
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        private static void ConfigureReportPost(ModelBuilder modelBuilder)
+        {
+            var e = modelBuilder.Entity<ReportPost>();
+            e.ToTable("ReportPosts");
+            e.HasKey(rp => rp.Id);
+            e.Property(rp => rp.UserId)
+                .IsRequired();
+            e.Property(rp => rp.ReportId)
+                .IsRequired();
+
+            e.HasOne(rp => rp.User)
+                .WithMany()
+                .HasForeignKey(rp => rp.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         private static void ConfigureUser(ModelBuilder modelBuilder)

@@ -19,9 +19,10 @@ namespace TerraON.Application.Services.AutoMapper
                 .ForMember(d => d.PasswordHash, o => o.Ignore())
                 .ForMember(d => d.Email, o => o.MapFrom(s => s.Email.Trim()))
                 .ForMember(d => d.ProfileImageId , o => o.Ignore())
+                .ForMember(d => d.Role, o => o.Ignore())
                 .AfterMap((s, d) =>
                 {
-                    d.NormalizedEmail = d.Email?.ToUpperInvariant();
+                    d.NormalizedEmail = d.Email!.ToUpperInvariant();
                 });
 
             CreateMap<RequestCreateReportJson, Report>()

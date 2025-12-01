@@ -16,7 +16,7 @@ namespace TerraON.Application.UseCases.Users.Login
         private readonly IPasswordService _passwordService = passwordService;
         public async Task<ResponseLoginJson> Execute(RequestLoginJson dto)
         {
-            var user = await _userReadOnlyRepository.GetByEmail(dto.Email)
+            var user = await _userReadOnlyRepository.GetByNormalizedEmail(dto.Email.ToUpperInvariant())
             ?? throw new LoginException("Usuário ou senha incorreto, tente novamente");
 
             var verifiedPassword = _passwordService.Verify(dto.Password, user.PasswordHash);
@@ -32,7 +32,8 @@ namespace TerraON.Application.UseCases.Users.Login
                 AvatarBase64 = user.ProfileImage is not null
                     ? Convert.ToBase64String(user.ProfileImage.Data)
                     : null,
-                AccessToken = _accessTokenGenerator.Generate(user)
+                AccessToken = _accessTokenGenerator.Generate(user),
+                Role = user.Role.ToString()
             };
         }
     }

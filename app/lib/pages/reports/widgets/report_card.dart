@@ -25,6 +25,118 @@ class _ReportCardState extends State<ReportCard> {
   bool _showAllComments = false;
   final _commentsKey = GlobalKey();
 
+  void _openMoreOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.flag_outlined, color: Colors.red),
+                title: const Text('Denunciar post'),
+                onTap: () {
+                  Navigator.of(ctx).pop(); // fecha o bottom sheet
+                  _openReportDialog(); // abre o modal de denúncia
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openReportDialog() async {
+    final TextEditingController reasonCtrl = TextEditingController();
+    bool sending = false;
+
+    await showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Denunciar post'),
+              content: TextField(
+                controller: reasonCtrl,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Motivo da denúncia',
+                  hintText: 'Descreva o que há de errado com este post',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: sending
+                      ? null
+                      : () {
+                          Navigator.of(dialogCtx).pop();
+                        },
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: sending
+                      ? null
+                      : () async {
+                          final reason = reasonCtrl.text.trim();
+
+                          if (reason.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Informe um motivo para a denúncia.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setStateDialog(() => sending = true);
+
+                          try {
+                            final repo = context.reportsRepo();
+                            await repo.reportPost(widget.item.id, reason);
+
+                            Navigator.of(dialogCtx).pop();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Denúncia enviada. Obrigado!'),
+                              ),
+                            );
+                          } catch (e) {
+                            setStateDialog(() => sending = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Erro ao enviar denúncia. Tente novamente.',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                  child: sending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Enviar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _toggleComposer() {
     setState(() => _showComposer = !_showComposer);
   }
@@ -114,7 +226,7 @@ class _ReportCardState extends State<ReportCard> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: _openMoreOptions,
                   icon: const Icon(Icons.more_horiz),
                 ),
               ],

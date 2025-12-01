@@ -7,5 +7,6 @@
         public string? City { get; set; }
         public string? State { get; set; }
         public string Base64ProfileImage { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
     }
 }

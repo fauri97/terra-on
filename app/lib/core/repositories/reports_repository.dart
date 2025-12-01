@@ -22,6 +22,13 @@ class ReportsRepository {
     return false;
   }
 
+  Future<void> reportPost(int postId, String reason) async {
+    await _dio.post(
+      '/api/reportposts',
+      data: {'postId': postId, 'reason': reason},
+    );
+  }
+
   Future<List<ReportItem>> getFeed() async {
     final resp = await _dio.get<Map<String, dynamic>>('/api/report');
     final json = resp.data ?? const {};

@@ -33,6 +33,7 @@ namespace TerraON.Application.UseCases.Users.Register
             var user = _mapper.Map<User>(request);
             user.PasswordHash = _passwordService.Hash(request.Password);
             user.UserIdentifier = Guid.NewGuid();
+            user.Role = UserRole.User;
 
             if (request.ProfileImageBase64 is not null)
             {

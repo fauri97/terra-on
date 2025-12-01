@@ -1,4 +1,5 @@
-﻿using TerraON.Application.UseCases.Users.Get.Me.DTOs;
+﻿using TerraON.Application.UseCases.Users.Get.All.DTOs;
+using TerraON.Application.UseCases.Users.Get.Me.DTOs;
 using TerraON.Domain.Repositories.Users;
 using TerraON.Exception;
 using TerraON.Exception.ExceptionBase;
@@ -23,7 +24,8 @@ namespace TerraON.Application.UseCases.Users.Get.Me
                 PhoneNumber = user.PhoneNumber ?? "N/A",
                 Base64ProfileImage = user.ProfileImage != null
                     ? Convert.ToBase64String(user.ProfileImage.Data)
-                    : string.Empty
+                    : string.Empty,
+                Role = user.Role.ToString()
             };
 
             return response;
