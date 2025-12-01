@@ -6,6 +6,7 @@ using TerraON.Application.UseCases.Admin.Dashboard;
 using TerraON.Application.UseCases.Comments.Create;
 using TerraON.Application.UseCases.ReportPosts.Create;
 using TerraON.Application.UseCases.ReportPosts.Get;
+using TerraON.Application.UseCases.ReportPosts.Update;
 using TerraON.Application.UseCases.Reports.Create;
 using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Reports.Like;
@@ -55,6 +56,7 @@ namespace TerraON.Application
 
             services.AddScoped<ICreateReportPostsUseCase, CreateReportPostsUseCase>();
             services.AddScoped<IGetReportPostsUseCase, GetReportPostsUseCase>();
+            services.AddScoped<IUpdateReportPostsUseCase, UpdateReportPostsUseCase>();
 
             services.AddScoped<IGetAdminDashboardUseCase, GetAdminDashboardUseCase>();
         }

@@ -7,6 +7,8 @@ using TerraON.Application.UseCases.ReportPosts.Create;
 using TerraON.Application.UseCases.ReportPosts.Create.DTOs;
 using TerraON.Application.UseCases.ReportPosts.Get;
 using TerraON.Application.UseCases.ReportPosts.Get.DTOs;
+using TerraON.Application.UseCases.ReportPosts.Update;
+using TerraON.Application.UseCases.ReportPosts.Update.DTOs;
 
 namespace TerraON.API.Controllers
 {
@@ -51,6 +53,22 @@ namespace TerraON.API.Controllers
                 StatusCode = StatusCodes.Status200OK,
                 Message = "Denúncias de postagens recuperadas com sucesso.",
                 Data = reportPosts
+            };
+            return Ok(response);
+        }
+
+        [HttpPut("{reportPostId}")]
+        [ProducesResponseType(typeof(ResponseBase<string>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateReportPostStatus(
+            [FromServices] IUpdateReportPostsUseCase useCase,
+            [FromRoute] long reportPostId,
+            [FromBody] RequestUpdatePostsJson status)
+        {
+            await useCase.Execute(reportPostId, status);
+            var response = new ResponseBase<string>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Status da denúncia de postagem atualizado com sucesso."
             };
             return Ok(response);
         }
