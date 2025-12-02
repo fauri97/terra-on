@@ -5,8 +5,8 @@ import PortalLayout from '@/layouts/AdminPortalLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 import AdminUsersView from '@/views/AdminUsersView.vue'
 import ReportsFeedView from '@/views/ReportsFeedView.vue'
+import PostReportView from '@/views/AdminPostReportsView.vue'
 
-const AdminCitiesView = { template: '<div>Lista de cidades (em breve)</div>' }
 const AdminSettingsView = { template: '<div>Configurações (em breve)</div>' }
 
 const routes = [
@@ -37,10 +37,10 @@ const routes = [
         meta: { requiresAuth: true, title: 'Denúncias | TerraON' },
       },
       {
-        path: 'cities',
-        name: 'cities',
-        component: AdminCitiesView,
-        meta: { requiresAuth: true, title: 'Cidades | TerraON' },
+        path: 'post-reports',
+        name: 'post-reports',
+        component: PostReportView,
+        meta: { requiresAuth: true, title: 'Denúncias de Posts | TerraON' },
       },
       {
         path: 'users',

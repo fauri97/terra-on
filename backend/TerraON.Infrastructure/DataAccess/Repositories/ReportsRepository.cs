@@ -7,6 +7,7 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
     public class ReportsRepository(TerraONDbContext context) : 
         IReportWriteOnlyRepository,
         IReportReadOnlyRepository,
+        IReportUpdateOnlyRepository,
         ILikeRepository
     {
         private readonly TerraONDbContext _context = context;
@@ -27,6 +28,7 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
                         .ThenInclude(a => a.ProfileImage)
                 .Include(r => r.Likes)
                 .OrderByDescending(r => r.CreatedAt)
+                .Where(r => r.DeletedAt == null)
                 .ToListAsync();
 
         public async Task<IEnumerable<Report>> GetByUserIdAsync(long userId)
@@ -41,6 +43,7 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
                         .ThenInclude(a => a.ProfileImage)
                 .Include(r => r.Likes)
                 .OrderByDescending(r => r.CreatedAt)
+                .Where(r => r.DeletedAt == null)
                 .ToListAsync();
 
         public async Task Like(Like entity)
@@ -50,5 +53,19 @@ namespace TerraON.Infrastructure.DataAccess.Repositories
         public async Task<Like?> GetLike(long reportId, long userId)
             => await _context.Likes
                 .FirstOrDefaultAsync(l => l.ReportId == reportId && l.UserId == userId);
+        public async Task<Report?> GetByIdAsync(long id)
+            => await _context.Reports
+                .AsSplitQuery()
+                .Include(r => r.Author)
+                    .ThenInclude(p => p.ProfileImage)
+                .Include(r => r.Images)
+                .Include(r => r.Comments)
+                    .ThenInclude(c => c.Author)
+                        .ThenInclude(a => a.ProfileImage)
+                .Include(r => r.Likes)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+        public void Update(Report report)
+            => _context.Reports.Update(report);
     }
 }

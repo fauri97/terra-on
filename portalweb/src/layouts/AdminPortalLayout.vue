@@ -127,7 +127,7 @@
                 </li>
 
                 <li>
-                  <RouterLink :to="{ name: 'cities' }" :class="menuItem('cities')">
+                  <RouterLink :to="{ name: 'post-reports' }" :class="menuItem('post-reports')">
                     <span class="material-symbols-outlined text-lg">report</span>
                     <span>Denúncias de Posts</span>
                   </RouterLink>
@@ -165,15 +165,11 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const pageTitle = computed(() => {
-  const map = {
-    dashboard: 'Dashboard',
-    reports: 'Denúncias',
-    cities: 'Cidades',
-    users: 'Usuários',
-    settings: 'Configurações',
-  }
-  return map[route.name] || 'TerraON'
+  const full = route.meta?.title
+  if (!full) return 'TerraON'
+  return String(full).split('|')[0].trim()
 })
+
 
 const menuItem = (name) => {
   const active = route.name === name

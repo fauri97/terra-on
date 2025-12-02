@@ -40,6 +40,7 @@ namespace TerraON.Infrastructure
 
             services.AddScoped<IReportWriteOnlyRepository, ReportsRepository>();
             services.AddScoped<IReportReadOnlyRepository, ReportsRepository>();
+            services.AddScoped<IReportUpdateOnlyRepository, ReportsRepository>();
             services.AddScoped<ILikeRepository, ReportsRepository>();
 
             services.AddScoped<IImageWriteOnlyRepository, ImagesRepository>();

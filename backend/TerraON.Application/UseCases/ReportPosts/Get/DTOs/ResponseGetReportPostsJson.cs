@@ -11,5 +11,6 @@ namespace TerraON.Application.UseCases.ReportPosts.Get.DTOs
         public string UserName { get; set; } = string.Empty;
         public string Reason { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public List<string> ImagesBase64 { get; set; } = new List<string>();
     }
 }

@@ -18,7 +18,8 @@ namespace TerraON.Application.UseCases.ReportPosts.Get
                 UserId = rp.User!.Id,
                 UserName = rp.User.Name,
                 Reason = rp.Reason,
-                Status = rp.Status.ToString()
+                Status = rp.Status.ToString(),
+                ImagesBase64 = [.. rp.Report.Images!.Select(img => Convert.ToBase64String(img.Data))]
             })];
         }
     }
