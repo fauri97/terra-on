@@ -35,7 +35,7 @@ namespace TerraON.Application.UseCases.Users.Register
             user.UserIdentifier = Guid.NewGuid();
             user.Role = UserRole.User;
 
-            if (request.ProfileImageBase64 is not null)
+            if (!string.IsNullOrEmpty(request.ProfileImageBase64))
             {
                 if (Base64ToByteaService.TryDecode(request.ProfileImageBase64, out var data, out var contentType, out var sizeBytes))
                 {

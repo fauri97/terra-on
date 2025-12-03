@@ -12,7 +12,7 @@
     ></div>
 
     <!-- Overlay para dar contraste -->
-    <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60"></div>
+    <div class="absolute inset-0 bg-linear-to-b from-black/50 via-black/40 to-black/60"></div>
 
     <!-- Conteúdo -->
     <div class="relative z-10 w-full max-w-4xl">
@@ -143,7 +143,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { apiClient, setAuthToken } from '@/services/apiClient'
+import { apiClient } from '@/services/apiClient'
 import { useAuthStore } from '@/stores/auth'
 import logo from '@/assets/images/terraon-logo.png'
 import loginBg from '@/assets/images/bg-login.png'
@@ -157,6 +157,22 @@ const error = ref(null)
 const router = useRouter()
 const authStore = useAuthStore()
 
+const redirectByRole = (user) => {
+  const role = (user.role || '').toLowerCase()
+  const city = user.userCity || ''
+
+  if (role === 'admin') {
+    router.push({ name: 'dashboard' }) // /admin
+  } else if (role === 'gov') {
+    router.push({
+      name: 'gov-dashboard', // /gov/dashboard
+      query: city ? { city } : undefined,
+    })
+  } else {
+    router.push({ name: 'dashboard' })
+  }
+}
+
 const onSubmit = async () => {
   if (loading.value) return
 
@@ -169,9 +185,12 @@ const onSubmit = async () => {
       password: password.value,
     })
 
-    const payload = res.data
+    const payload = res.data || {}
+    const statusCode =
+      typeof payload.statusCode === 'number' ? payload.statusCode : 0
 
-    if (payload.statusCode !== 201) {
+    // tua API agora manda 0 pra sucesso
+    if (![0, 200, 201].includes(statusCode)) {
       throw new Error(payload.message || 'Falha ao autenticar.')
     }
 
@@ -181,34 +200,20 @@ const onSubmit = async () => {
       throw new Error('Resposta de login inválida da API.')
     }
 
-    console.log(user.accessToken)
-
-    setAuthToken(user.accessToken)
     authStore.setUser(user)
 
-    if (rememberMe.value) {
-      localStorage.setItem('terraon_user', JSON.stringify(user))
-    } else {
+    if (!rememberMe.value) {
       localStorage.removeItem('terraon_user')
     }
 
-    router.push({ name: 'dashboard' })
+    redirectByRole(user)
   } catch (err) {
     error.value =
-      err?.response?.data?.message || err?.message || 'Não foi possível entrar. Tente novamente.'
+      err?.response?.data?.message ||
+      err?.message ||
+      'Não foi possível entrar. Tente novamente.'
   } finally {
     loading.value = false
   }
 }
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

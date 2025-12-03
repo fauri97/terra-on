@@ -111,6 +111,7 @@ class ReportItem {
   final String state;
   final String bairro;
   final String cep;
+  final String status;
 
   final InlineImage? authorAvatar;
   final List<ReportLike> likes;
@@ -134,6 +135,7 @@ class ReportItem {
     required this.likes,
     required this.comments,
     required this.images,
+    required this.status,
   });
 
   factory ReportItem.fromJson(Map<String, dynamic> m) => ReportItem(
@@ -149,6 +151,7 @@ class ReportItem {
     state: m['state'] as String? ?? '',
     bairro: m['bairro'] as String? ?? '',
     cep: m['cep'] as String? ?? '',
+    status: m['status'] as String? ?? '',
     authorAvatar: InlineImage.fromMap(
       m['authorAvatar'] as Map<String, dynamic>?,
     ),

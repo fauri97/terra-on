@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TerraON.API.Attributes;
 using TerraON.API.Responses;
@@ -12,7 +11,6 @@ using TerraON.Application.UseCases.Reports.ExportPdf.DTOs;
 using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Reports.Get.DTOs;
 using TerraON.Application.UseCases.Reports.Like;
-using TerraON.Domain.Repositories.Reports;
 
 namespace TerraON.API.Controllers
 {

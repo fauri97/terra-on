@@ -26,17 +26,17 @@
             {{ pageTitle }}
           </h1>
           <p class="text-xs text-base-content/70 hidden sm:block">
-            TerraON · Painel administrativo
+            TerraON · Portal Prefeitura
           </p>
         </div>
 
         <div class="flex-none flex items-center gap-3">
           <div class="text-right hidden sm:block">
             <div class="text-sm font-medium">
-              {{ authStore.userName || 'Administrador' }}
+              {{ authStore.userName || 'Usuário Prefeitura' }}
             </div>
             <div class="text-[11px] text-base-content/60">
-              {{ authStore.userEmail || 'admin@terraon.app' }}
+              {{ authStore.userEmail || 'prefeitura@terraon.app' }}
             </div>
           </div>
 
@@ -87,8 +87,8 @@
             <img :src="logo" alt="TerraON Logo" class="w-9 h-9 object-contain" />
           </div>
           <div>
-            <div class="font-bold text-base">TerraON Portal</div>
-            <div class="text-[11px] text-base-content/60">Administração</div>
+            <div class="font-bold text-base">TerraON Prefeitura</div>
+            <div class="text-[11px] text-base-content/60">Acompanhamento de denúncias</div>
           </div>
         </div>
 
@@ -103,7 +103,10 @@
               </p>
               <ul class="space-y-1">
                 <li>
-                  <RouterLink :to="{ name: 'dashboard' }" :class="menuItem('dashboard')">
+                  <RouterLink
+                    :to="{ name: 'gov-dashboard' }"
+                    :class="menuItem('gov-dashboard')"
+                  >
                     <span class="material-symbols-outlined text-lg">dashboard</span>
                     <span>Dashboard</span>
                   </RouterLink>
@@ -120,13 +123,18 @@
               </p>
               <ul class="space-y-1">
                 <li>
-                  <RouterLink :to="{ name: 'reports' }" :class="menuItem('reports')">
+                  <RouterLink
+                    :to="{ name: 'gov-reports' }"
+                    :class="menuItem('gov-reports')"
+                  >
                     <span class="material-symbols-outlined text-lg">post</span>
                     <span>Denúncias</span>
                   </RouterLink>
                 </li>
               </ul>
             </li>
+
+            <!-- RELATÓRIOS -->
             <li>
               <p
                 class="text-[11px] font-semibold tracking-wider uppercase text-base-content/50 mb-2"
@@ -136,33 +144,12 @@
 
               <ul class="space-y-1">
                 <li>
-                  <RouterLink :to="{ name: 'ReportsExport' }" :class="menuItem('reports-export')">
-                    <span class="material-symbols-outlined text-lg"> picture_as_pdf </span>
+                  <RouterLink
+                    :to="{ name: 'gov-reports-export' }"
+                    :class="menuItem('gov-reports-export')"
+                  >
+                    <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
                     <span>Denúncias (PDF)</span>
-                  </RouterLink>
-                </li>
-              </ul>
-            </li>
-
-            <!-- ADMINISTRAÇÃO -->
-            <li>
-              <p
-                class="text-[11px] font-semibold tracking-wider uppercase text-base-content/50 mb-2"
-              >
-                Administração
-              </p>
-              <ul class="space-y-1">
-                <li>
-                  <RouterLink :to="{ name: 'users' }" :class="menuItem('users')">
-                    <span class="material-symbols-outlined text-lg">group</span>
-                    <span>Usuários</span>
-                  </RouterLink>
-                </li>
-
-                <li>
-                  <RouterLink :to="{ name: 'post-reports' }" :class="menuItem('post-reports')">
-                    <span class="material-symbols-outlined text-lg">report</span>
-                    <span>Denúncias de Posts</span>
                   </RouterLink>
                 </li>
               </ul>
@@ -173,7 +160,7 @@
         <!-- Rodapé -->
         <div class="px-4 py-3 border-t border-base-200 text-[11px] text-base-content/60">
           TerraON · v1.0<br />
-          <span class="opacity-70">Painel de gestão de denúncias</span>
+          <span class="opacity-70">Portal da Prefeitura</span>
         </div>
       </aside>
     </div>
@@ -192,7 +179,7 @@ const authStore = useAuthStore()
 
 const pageTitle = computed(() => {
   const full = route.meta?.title
-  if (!full) return 'TerraON'
+  if (!full) return 'TerraON Prefeitura'
   return String(full).split('|')[0].trim()
 })
 
@@ -208,7 +195,7 @@ const menuItem = (name) => {
 }
 
 const initials = computed(() => {
-  const name = authStore.userName || 'Admin TerraON'
+  const name = authStore.userName || 'Usuário Prefeitura'
   const parts = name.trim().split(' ')
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()

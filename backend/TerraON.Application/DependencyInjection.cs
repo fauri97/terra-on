@@ -4,6 +4,7 @@ using TerraON.Application.Services.AutoMapper;
 using TerraON.Application.Services.Cryptography;
 using TerraON.Application.UseCases.Admin.Dashboard;
 using TerraON.Application.UseCases.Comments.Create;
+using TerraON.Application.UseCases.Gov.Dashboard;
 using TerraON.Application.UseCases.ReportPosts.Create;
 using TerraON.Application.UseCases.ReportPosts.Get;
 using TerraON.Application.UseCases.ReportPosts.Update;
@@ -63,6 +64,7 @@ namespace TerraON.Application
             services.AddScoped<IUpdateReportPostsUseCase, UpdateReportPostsUseCase>();
 
             services.AddScoped<IGetAdminDashboardUseCase, GetAdminDashboardUseCase>();
+            services.AddScoped<IGetMunicipalDashboardUseCase, GetMunicipalDashboardUseCase>();
         }
     }
 }

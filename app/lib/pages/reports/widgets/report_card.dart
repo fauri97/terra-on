@@ -182,6 +182,8 @@ class _ReportCardState extends State<ReportCard> {
     final item = widget.item;
     final cs = Theme.of(context).colorScheme;
 
+    final isResolved = item.status == 'Resolved';
+
     final showCity = [
       item.city,
       item.state,
@@ -225,6 +227,38 @@ class _ReportCardState extends State<ReportCard> {
                     ],
                   ),
                 ),
+
+                if (isResolved)
+                  Container(
+                    margin: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.green.withOpacity(0.4),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.check_circle, size: 14, color: Colors.green),
+                        SizedBox(width: 4),
+                        Text(
+                          'Resolvido',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 IconButton(
                   onPressed: _openMoreOptions,
                   icon: const Icon(Icons.more_horiz),
@@ -291,10 +325,9 @@ class _ReportCardState extends State<ReportCard> {
             ),
           ),
 
-          // Comentários (pré-visualização)
           if (item.comments.isNotEmpty)
             Padding(
-              key: _commentsKey, // <-- ancora para rolar
+              key: _commentsKey,
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

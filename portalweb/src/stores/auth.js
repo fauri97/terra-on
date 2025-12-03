@@ -12,13 +12,12 @@ export const useAuthStore = defineStore('auth', {
     userEmail: (state) => state.user?.email || '',
     userAvatar: (state) => state.user?.avatarBase64 || null,
     userRole: (state) => state.user?.role || 'User',
+    userCity: (state) => state.user?.userCity || '',
 
     userAvatarSrc: (state) => {
       const b64 = state.user?.avatarBase64
       if (!b64) return null
-
       if (b64.startsWith('data:')) return b64
-
       return `data:image/png;base64,${b64}`
     },
   },
@@ -41,6 +40,10 @@ export const useAuthStore = defineStore('auth', {
 
     setUser(user) {
       this.user = user
+      if (user?.accessToken) {
+        setAuthToken(user.accessToken)
+      }
+      localStorage.setItem('terraon_user', JSON.stringify(user))
     },
 
     logout() {

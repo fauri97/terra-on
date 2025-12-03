@@ -1,19 +1,77 @@
 <template>
   <div class="max-w-3xl mx-auto space-y-4">
-    <div class="flex items-center justify-between mb-2">
-      <div>
-        <h2 class="text-2xl font-bold text-base-content">Denúncias recentes</h2>
-        <p class="text-sm text-base-content/70">
-          Acompanhe as denúncias registradas pela comunidade em tempo real.
-        </p>
+    <!-- Cabeçalho + Filtros -->
+    <div class="space-y-3">
+      <!-- Cabeçalho -->
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-2xl font-bold text-base-content">Denúncias recentes</h2>
+          <p class="text-sm text-base-content/70">
+            Acompanhe as denúncias registradas pela comunidade em tempo real.
+          </p>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" :disabled="loading" @click="refresh">
+          <span class="material-symbols-outlined text-sm">refresh</span>
+          Atualizar
+        </button>
       </div>
 
-      <button class="btn btn-ghost btn-sm" :disabled="loading" @click="refresh">
-        <span class="material-symbols-outlined text-sm">refresh</span>
-        Atualizar
-      </button>
+      <!-- Filtros em card -->
+      <div class="card bg-base-100/90 border border-base-300 shadow-sm">
+        <div class="card-body py-3 px-3 md:px-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <!-- Infos / badges -->
+          <div class="flex flex-wrap items-center gap-2 text-[11px] md:text-xs">
+            <div class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-base-content/70">
+                list_alt
+              </span>
+              <span class="badge badge-outline">
+                Total: {{ reports.length }}
+              </span>
+            </div>
+
+            <div v-if="filteredReports.length !== reports.length" class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-primary">
+                filter_alt
+              </span>
+              <span class="badge badge-outline badge-primary">
+                Filtrados: {{ filteredReports.length }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Controles de filtro -->
+          <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <!-- Filtro de status -->
+            <div class="join w-full sm:w-48">
+              <span class="join-item btn btn-ghost btn-xs px-2 gap-1 text-[11px] text-base-content/80">
+                <span class="material-symbols-outlined text-sm">flag</span>
+                <span class="hidden sm:inline">Status</span>
+              </span>
+              <select v-model="statusFilter" class="join-item select select-bordered select-xs w-full">
+                <option value="">Todos</option>
+                <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Busca de texto -->
+            <div class="join w-full sm:w-64">
+              <span class="join-item btn btn-ghost btn-xs px-2 gap-1 text-[11px] text-base-content/80">
+                <span class="material-symbols-outlined text-sm">search</span>
+                <span class="hidden sm:inline">Buscar</span>
+              </span>
+              <input v-model="search" type="text" placeholder="Descrição, autor ou endereço"
+                class="join-item input input-bordered input-xs w-full" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Estados globais -->
     <div v-if="loading && reports.length === 0" class="w-full flex justify-center py-10">
       <span class="loading loading-spinner loading-lg text-primary"></span>
     </div>
@@ -23,24 +81,15 @@
     </div>
 
     <div v-else class="space-y-4">
-      <div
-        v-for="report in reports"
-        :key="report.id"
-        class="card bg-base-100 shadow-sm border border-base-200"
-      >
+      <div v-for="report in filteredReports" :key="report.id" class="card bg-base-100 shadow-sm border border-base-200">
         <div class="card-body p-4 space-y-3">
           <!-- Cabeçalho / autor -->
           <div class="flex items-start gap-3">
             <div class="avatar">
               <div
-                class="w-10 h-10 rounded-full bg-base-200 border border-base-300 overflow-hidden flex items-center justify-center"
-              >
-                <img
-                  v-if="getAvatarSrc(report.authorAvatar)"
-                  :src="getAvatarSrc(report.authorAvatar)"
-                  :alt="report.authorName"
-                  class="w-full h-full object-cover"
-                />
+                class="w-10 h-10 rounded-full bg-base-200 border border-base-300 overflow-hidden flex items-center justify-center">
+                <img v-if="getAvatarSrc(report.authorAvatar)" :src="getAvatarSrc(report.authorAvatar)"
+                  :alt="report.authorName" class="w-full h-full object-cover" />
                 <span v-else class="text-xs font-semibold text-base-content/70">
                   {{ getInitials(report.authorName) }}
                 </span>
@@ -57,12 +106,8 @@
                     {{ formatAddress(report) }}
                   </p>
                 </div>
-                <button
-                  v-if="hasCoords(report)"
-                  type="button"
-                  class="btn btn-ghost btn-xs gap-1"
-                  @click="goToMap(report)"
-                >
+                <button v-if="hasCoords(report)" type="button" class="btn btn-ghost btn-xs gap-1"
+                  @click="goToMap(report)">
                   <span class="material-symbols-outlined text-sm">location_on</span>
                   <span class="hidden sm:inline text-[11px]"> Ver no mapa </span>
                 </button>
@@ -78,40 +123,27 @@
           <!-- Imagens -->
           <div v-if="report.images && report.images.length" class="relative">
             <div class="overflow-hidden rounded-xl border border-base-300 bg-base-200">
-              <img
-                :src="getImageSrc(report.images[currentImageIndex(report.id)])"
-                alt="Imagem da denúncia"
-                class="w-full max-h-96 object-cover"
-              />
+              <img :src="getImageSrc(report.images[currentImageIndex(report.id)])" alt="Imagem da denúncia"
+                class="w-full max-h-96 object-cover" />
             </div>
 
-            <button
-              v-if="report.images.length > 1"
-              type="button"
+            <button v-if="report.images.length > 1" type="button"
               class="btn btn-circle btn-xs absolute left-2 top-1/2 -translate-y-1/2"
-              @click="prevImage(report.id, report.images.length)"
-            >
+              @click="prevImage(report.id, report.images.length)">
               <span class="material-symbols-outlined text-sm">chevron_left</span>
             </button>
 
-            <button
-              v-if="report.images.length > 1"
-              type="button"
+            <button v-if="report.images.length > 1" type="button"
               class="btn btn-circle btn-xs absolute right-2 top-1/2 -translate-y-1/2"
-              @click="nextImage(report.id, report.images.length)"
-            >
+              @click="nextImage(report.id, report.images.length)">
               <span class="material-symbols-outlined text-sm">chevron_right</span>
             </button>
 
             <div v-if="report.images.length > 1" class="flex justify-center gap-1 mt-1">
-              <button
-                v-for="(_, idx) in report.images"
-                :key="idx"
-                type="button"
+              <button v-for="(_, idx) in report.images" :key="idx" type="button"
                 class="h-1.5 rounded-full transition-all"
                 :class="currentImageIndex(report.id) === idx ? 'w-4 bg-primary' : 'w-2 bg-base-300'"
-                @click="setImageIndex(report.id, idx)"
-              ></button>
+                @click="setImageIndex(report.id, idx)"></button>
             </div>
           </div>
 
@@ -123,12 +155,8 @@
                 <span>{{ report.likeCount }} curtida(s)</span>
               </div>
 
-              <button
-                v-if="report.comments && report.comments.length"
-                type="button"
-                class="flex items-center gap-1 text-primary"
-                @click="toggleComments(report.id)"
-              >
+              <button v-if="report.comments && report.comments.length" type="button"
+                class="flex items-center gap-1 text-primary" @click="toggleComments(report.id)">
                 <span class="material-symbols-outlined text-sm"> chat_bubble </span>
                 <span>{{ report.comments.length }} comentário(s)</span>
               </button>
@@ -136,25 +164,14 @@
           </div>
 
           <!-- Lista de comentários -->
-          <div
-            v-if="isCommentsOpen(report.id) && report.comments && report.comments.length"
-            class="mt-2 border-t border-base-200 pt-2 space-y-2"
-          >
-            <div
-              v-for="comment in report.comments"
-              :key="comment.id"
-              class="flex items-start gap-2"
-            >
+          <div v-if="isCommentsOpen(report.id) && report.comments && report.comments.length"
+            class="mt-2 border-t border-base-200 pt-2 space-y-2">
+            <div v-for="comment in report.comments" :key="comment.id" class="flex items-start gap-2">
               <div class="avatar">
                 <div
-                  class="w-7 h-7 rounded-full bg-base-200 border border-base-300 overflow-hidden flex items-center justify-center"
-                >
-                  <img
-                    v-if="getAvatarSrc(comment.authorAvatar)"
-                    :src="getAvatarSrc(comment.authorAvatar)"
-                    :alt="comment.authorName"
-                    class="w-full h-full object-cover"
-                  />
+                  class="w-7 h-7 rounded-full bg-base-200 border border-base-300 overflow-hidden flex items-center justify-center">
+                  <img v-if="getAvatarSrc(comment.authorAvatar)" :src="getAvatarSrc(comment.authorAvatar)"
+                    :alt="comment.authorName" class="w-full h-full object-cover" />
                   <span v-else class="text-[10px] font-semibold text-base-content/70">
                     {{ getInitials(comment.authorName) }}
                   </span>
@@ -182,38 +199,24 @@
             </div>
 
             <div class="flex items-center gap-2">
-              <span
-                v-if="isUpdating(report.id)"
-                class="text-base-content/50 flex items-center gap-1"
-              >
+              <span v-if="isUpdating(report.id)" class="text-base-content/50 flex items-center gap-1">
                 <span class="loading loading-spinner loading-xs"></span>
                 Atualizando...
               </span>
 
               <div class="dropdown dropdown-end">
-                <label
-                  tabindex="0"
-                  class="btn btn-ghost btn-xs gap-1"
-                  :class="{ 'btn-disabled': isUpdating(report.id) }"
-                >
+                <label tabindex="0" class="btn btn-ghost btn-xs gap-1"
+                  :class="{ 'btn-disabled': isUpdating(report.id) }">
                   <span class="material-symbols-outlined text-sm">flag</span>
                   <span class="hidden sm:inline">Atualizar status</span>
                 </label>
-                <ul
-                  tabindex="0"
-                  class="dropdown-content menu menu-xs p-2 shadow bg-base-100 rounded-box w-44 z-10"
-                >
+                <ul tabindex="0" class="dropdown-content menu menu-xs p-2 shadow bg-base-100 rounded-box w-44 z-10">
                   <li v-for="opt in statusOptions" :key="opt.value">
-                    <button
-                      type="button"
-                      class="flex justify-between items-center"
-                      @click="changeStatus(report, opt.value)"
-                    >
+                    <button type="button" class="flex justify-between items-center"
+                      @click="changeStatus(report, opt.value)">
                       <span>{{ opt.label }}</span>
-                      <span
-                        v-if="report.status?.toLowerCase() === opt.value"
-                        class="material-symbols-outlined text-[13px] text-primary"
-                      >
+                      <span v-if="report.status?.toLowerCase() === opt.value"
+                        class="material-symbols-outlined text-[13px] text-primary">
                         check
                       </span>
                     </button>
@@ -226,29 +229,26 @@
         </div>
       </div>
 
-      <div
-        v-if="!loading && !error && reports.length === 0"
-        class="text-center text-sm text-base-content/60 py-8"
-      >
+      <!-- Nada encontrado -->
+      <div v-if="!loading && !error && filteredReports.length === 0 && reports.length > 0"
+        class="text-center text-sm text-base-content/60 py-8">
+        Nenhuma denúncia encontrada para os filtros atuais.
+      </div>
+
+      <div v-else-if="!loading && !error && reports.length === 0" class="text-center text-sm text-base-content/60 py-8">
         Nenhuma denúncia encontrada.
       </div>
 
+      <!-- Paginação -->
       <div v-if="hasMore && reports.length > 0" class="flex justify-center pt-2">
-        <button
-          class="btn btn-outline btn-sm"
-          :class="{ loading: loadingMore }"
-          :disabled="loadingMore"
-          @click="loadMore"
-        >
+        <button class="btn btn-outline btn-sm" :class="{ loading: loadingMore }" :disabled="loadingMore"
+          @click="loadMore">
           <span v-if="!loadingMore">Carregar mais</span>
           <span v-else>Carregando...</span>
         </button>
       </div>
 
-      <div
-        v-else-if="!hasMore && reports.length > 0"
-        class="text-center text-[11px] text-base-content/50 pb-4"
-      >
+      <div v-else-if="!hasMore && reports.length > 0" class="text-center text-[11px] text-base-content/50 pb-4">
         Você chegou ao fim da lista.
       </div>
     </div>
@@ -256,7 +256,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { apiClient } from '@/services/apiClient'
 
 const reports = ref([])
@@ -273,20 +273,25 @@ const openComments = reactive({})
 
 const updatingStatus = reactive({})
 
+const search = ref('')
+const statusFilter = ref('')
+
 const statusOptions = [
-  { value: 'pending', label: 'Pendente' },
-  { value: 'inprogress', label: 'Em andamento' },
-  { value: 'resolved', label: 'Resolvido' },
-  { value: 'inappropriate', label: 'Inapropriado' },
-  { value: 'dismissed', label: 'Descartado' },
-  { value: 'diactivated', label: 'Desativado' },
+  { value: 'pending', valueNorm: 'pending', label: 'Pendente' },
+  { value: 'inprogress', valueNorm: 'inprogress', label: 'Em andamento' },
+  { value: 'resolved', valueNorm: 'resolved', label: 'Resolvido' },
+  { value: 'inappropriate', valueNorm: 'inappropriate', label: 'Inapropriado' },
+  { value: 'dismissed', valueNorm: 'dismissed', label: 'Descartado' },
+  { value: 'diactivated', valueNorm: 'diactivated', label: 'Desativado' },
 ]
+
+const normalizeStatus = (status) => (status ? status.toString().toLowerCase() : '')
 
 const isUpdating = (reportId) => !!updatingStatus[reportId]
 
 const formatStatus = (status) => {
   if (!status) return 'Sem status'
-  const s = status.toLowerCase()
+  const s = normalizeStatus(status)
   switch (s) {
     case 'pending':
       return 'Pendente'
@@ -307,13 +312,40 @@ const formatStatus = (status) => {
 
 const statusBadgeClass = (status) => {
   if (!status) return 'badge-ghost'
-  const s = status.toLowerCase()
+  const s = normalizeStatus(status)
   if (s === 'pending') return 'badge-warning'
   if (s === 'inprogress') return 'badge-info'
   if (s === 'resolved') return 'badge-success'
   if (s === 'inappropriate' || s === 'dismissed' || s === 'diactivated') return 'badge-error'
   return 'badge-ghost'
 }
+
+const filteredReports = computed(() => {
+  let list = reports.value || []
+
+  if (statusFilter.value) {
+    const target = statusFilter.value.toLowerCase()
+    list = list.filter((r) => normalizeStatus(r.status) === target)
+  }
+
+  if (search.value.trim()) {
+    const term = search.value.toLowerCase().trim()
+    list = list.filter((r) => {
+      const fields = [
+        r.description,
+        r.authorName,
+        formatAddress(r),
+        formatStatus(r.status),
+      ]
+        .filter(Boolean)
+        .map((x) => x.toString().toLowerCase())
+
+      return fields.some((f) => f.includes(term))
+    })
+  }
+
+  return list
+})
 
 const changeStatus = async (report, newStatus) => {
   if (!report || !report.id) return

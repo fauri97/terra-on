@@ -1,14 +1,20 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
 import LoginView from '@/views/LoginView.vue'
 import AdminDashboardView from '@/views/AdminDashboardView.vue'
 import PortalLayout from '@/layouts/AdminPortalLayout.vue'
-import { useAuthStore } from '@/stores/auth'
-import AdminUsersView from '@/views/AdminUsersView.vue'
+import PrefeituraLayout from '@/layouts/PrefeituraLayout.vue'
+import MunicipalDashboard from '@/views/MunicipalDashboard.vue'
 import ReportsFeedView from '@/views/ReportsFeedView.vue'
 import PostReportView from '@/views/AdminPostReportsView.vue'
+import AdminUsersView from '@/views/AdminUsersView.vue'
 import ReportsExportPage from '@/views/ReportsExportPage.vue'
 
-const AdminSettingsView = { template: '<div>Configurações (em breve)</div>' }
+const AdminSettingsView = {
+  template: '<div>Configurações (em breve)</div>',
+}
 
 const routes = [
   {
@@ -20,6 +26,8 @@ const routes = [
       title: 'Login | TerraON',
     },
   },
+
+  // =================== ADMIN ===================
   {
     path: '/admin',
     component: PortalLayout,
@@ -33,7 +41,7 @@ const routes = [
       },
       {
         path: 'reports',
-        name: 'reports',
+        name: 'reports', // <-- IMPORTANTE: esse name EXISTE
         component: ReportsFeedView,
         meta: { requiresAuth: true, title: 'Denúncias | TerraON' },
       },
@@ -50,8 +58,8 @@ const routes = [
         meta: { requiresAuth: true, title: 'Usuários | TerraON' },
       },
       {
-        path: '/admin/reports/export',
-        name: 'ReportsExport',
+        path: 'reports/export',
+        name: 'ReportsExport', // usado no layout de admin
         component: ReportsExportPage,
         meta: { requiresAuth: true, title: 'Relatórios | TerraON' },
       },
@@ -63,6 +71,39 @@ const routes = [
       },
     ],
   },
+
+  // =================== PREFEITURA ===================
+  {
+    path: '/gov',
+    component: PrefeituraLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        redirect: { name: 'gov-dashboard' },
+      },
+      {
+        path: 'dashboard',
+        name: 'gov-dashboard',
+        component: MunicipalDashboard,
+        meta: { requiresAuth: true, title: 'Dashboard Prefeitura | TerraON' },
+      },
+      {
+        path: 'reports',
+        name: 'gov-reports', // usado no layout da prefeitura
+        component: ReportsFeedView,
+        meta: { requiresAuth: true, title: 'Denúncias | TerraON' },
+      },
+      {
+        path: 'reports/export',
+        name: 'gov-reports-export',
+        component: ReportsExportPage,
+        meta: { requiresAuth: true, title: 'Relatórios | TerraON' },
+      },
+    ],
+  },
+
+  // =================== 404 ===================
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -93,21 +134,28 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isLoggedIn = authStore.isAuthenticated
+  const role = (authStore.userRole || '').toLowerCase()
 
-  if (to.meta?.title) {
+  if (to.meta && to.meta.title) {
     document.title = to.meta.title
   } else {
     document.title = 'TerraON Portal'
   }
 
-  if (to.meta.requiresAuth && !isLoggedIn) {
+  if (to.meta && to.meta.requiresAuth && !isLoggedIn) {
     return next({
       name: 'login',
       query: { redirect: to.fullPath },
     })
   }
 
-  if (to.meta.guestOnly && isLoggedIn) {
+  if (to.meta && to.meta.guestOnly && isLoggedIn) {
+    if (role === 'admin') {
+      return next({ name: 'dashboard' })
+    }
+    if (role === 'gov') {
+      return next({ name: 'gov-dashboard' })
+    }
     return next({ name: 'dashboard' })
   }
 
