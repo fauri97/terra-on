@@ -1,21 +1,22 @@
-﻿using Microsoft.Extensions.Configuration;
-using System.Reflection;
-using FluentMigrator.Runner;
+﻿using FluentMigrator.Runner;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using TerraON.Domain.Repositories;
+using TerraON.Domain.Repositories.Comments;
+using TerraON.Domain.Repositories.Images;
+using TerraON.Domain.Repositories.ReportPosts;
+using TerraON.Domain.Repositories.Reports;
+using TerraON.Domain.Repositories.Users;
 using TerraON.Domain.Security.Tokens;
 using TerraON.Domain.Services.LoggedUser;
 using TerraON.Infrastructure.DataAccess;
+using TerraON.Infrastructure.DataAccess.Repositories;
 using TerraON.Infrastructure.Extensions;
+using TerraON.Infrastructure.Pdf;
 using TerraON.Infrastructure.Security.Tokens.Access;
 using TerraON.Infrastructure.Services.LoggedUser;
-using TerraON.Domain.Repositories.Users;
-using TerraON.Infrastructure.DataAccess.Repositories;
-using TerraON.Domain.Repositories;
-using TerraON.Domain.Repositories.Reports;
-using TerraON.Domain.Repositories.Images;
-using TerraON.Domain.Repositories.Comments;
-using TerraON.Domain.Repositories.ReportPosts;
 
 namespace TerraON.Infrastructure
 {
@@ -41,6 +42,7 @@ namespace TerraON.Infrastructure
             services.AddScoped<IReportWriteOnlyRepository, ReportsRepository>();
             services.AddScoped<IReportReadOnlyRepository, ReportsRepository>();
             services.AddScoped<IReportUpdateOnlyRepository, ReportsRepository>();
+            services.AddScoped<IReportPdfExporter, ReportPdfExporter>();
             services.AddScoped<ILikeRepository, ReportsRepository>();
 
             services.AddScoped<IImageWriteOnlyRepository, ImagesRepository>();

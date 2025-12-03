@@ -33,14 +33,17 @@ namespace TerraON.Application.UseCases.ReportPosts.Update
                 case "pendente":
                     reportPost.Status = ReportPostStatus.Pendente;
                     report.DeletedAt = null;
+                    report.Status = ReportStatus.Pending;
                     break;
                 case "revisado":
                     reportPost.Status = ReportPostStatus.Revisado;
                     report.DeletedAt = DateTime.UtcNow;
+                    report.Status = ReportStatus.Inappropriate;
                     break;
                 case "recusado":
                     reportPost.Status = ReportPostStatus.Recusado;
                     report.DeletedAt = null;
+                    report.Status = ReportStatus.Pending;
                     break;
                 default:
                     throw new BusinessValidationException("Status inválido");

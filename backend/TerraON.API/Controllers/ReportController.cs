@@ -3,11 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TerraON.API.Attributes;
 using TerraON.API.Responses;
+using TerraON.Application.UseCases.Reports.ChangeStatus;
+using TerraON.Application.UseCases.Reports.ChangeStatus.DTOs;
 using TerraON.Application.UseCases.Reports.Create;
 using TerraON.Application.UseCases.Reports.Create.DTOs;
+using TerraON.Application.UseCases.Reports.ExportPdf;
+using TerraON.Application.UseCases.Reports.ExportPdf.DTOs;
 using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Reports.Get.DTOs;
 using TerraON.Application.UseCases.Reports.Like;
+using TerraON.Domain.Repositories.Reports;
 
 namespace TerraON.API.Controllers
 {
@@ -104,6 +109,52 @@ namespace TerraON.API.Controllers
                 Data = "OK"
             };
             return Ok(response);
+        }
+
+        [AuthenticatedUser]
+        [HttpPut("{reportId}/status")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResponseBase<string>))]
+        public async Task<ActionResult<ResponseBase<string>>> ChangeStatus(
+            [FromServices] IChangeStatusUseCase useCase,
+            [FromRoute] long reportId,
+            [FromBody] RequestReportNewStatusJson request)
+        {
+            await useCase.ExecuteAsync(reportId, request);
+            var response = new ResponseBase<string>
+            {
+                StatusCode = StatusCodes.Status200OK,
+                Message = "Status do relatório alterado com sucesso.",
+                Data = "OK"
+            };
+            return Ok(response);
+        }
+
+        [AuthenticatedUser]
+        [HttpGet("export/pdf")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileContentResult))]
+        public async Task<ActionResult> ExportReportsToPdf(
+            [FromServices] IExportReportsPdfUseCase useCase,
+            [FromQuery] string? status,
+            [FromQuery] string? city,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to)
+        {
+            var filter = new ExportPDFFilter
+            {
+                Status = status,
+                City = city,
+                From = from,
+                To = to
+            };
+
+            var pdfBytes = await useCase.ExecuteAsync(filter);
+
+            var fileResult = new FileContentResult(pdfBytes, "application/pdf")
+            {
+                FileDownloadName = $"relatorios-denuncias-{DateTime.UtcNow:yyyyMMddHHmmss}.pdf"
+            };
+
+            return fileResult;
         }
     }
 }

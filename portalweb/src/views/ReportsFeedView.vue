@@ -29,6 +29,7 @@
         class="card bg-base-100 shadow-sm border border-base-200"
       >
         <div class="card-body p-4 space-y-3">
+          <!-- Cabeçalho / autor -->
           <div class="flex items-start gap-3">
             <div class="avatar">
               <div
@@ -68,9 +69,13 @@
               </div>
             </div>
           </div>
+
+          <!-- Descrição -->
           <p class="text-sm text-base-content/90 whitespace-pre-line">
             {{ report.description }}
           </p>
+
+          <!-- Imagens -->
           <div v-if="report.images && report.images.length" class="relative">
             <div class="overflow-hidden rounded-xl border border-base-300 bg-base-200">
               <img
@@ -79,6 +84,7 @@
                 class="w-full max-h-96 object-cover"
               />
             </div>
+
             <button
               v-if="report.images.length > 1"
               type="button"
@@ -96,6 +102,7 @@
             >
               <span class="material-symbols-outlined text-sm">chevron_right</span>
             </button>
+
             <div v-if="report.images.length > 1" class="flex justify-center gap-1 mt-1">
               <button
                 v-for="(_, idx) in report.images"
@@ -107,6 +114,8 @@
               ></button>
             </div>
           </div>
+
+          <!-- Likes / comentários -->
           <div class="flex items-center justify-between text-xs mt-1">
             <div class="flex items-center gap-3">
               <div class="flex items-center gap-1">
@@ -125,6 +134,8 @@
               </button>
             </div>
           </div>
+
+          <!-- Lista de comentários -->
           <div
             v-if="isCommentsOpen(report.id) && report.comments && report.comments.length"
             class="mt-2 border-t border-base-200 pt-2 space-y-2"
@@ -160,6 +171,58 @@
               </div>
             </div>
           </div>
+
+          <!-- STATUS + BOTÃO LADO INFERIOR DIREITO -->
+          <div class="flex items-center justify-between mt-3 text-[11px]">
+            <div class="flex items-center gap-2">
+              <span class="text-base-content/60">Status:</span>
+              <span class="badge badge-xs" :class="statusBadgeClass(report.status)">
+                {{ formatStatus(report.status) }}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span
+                v-if="isUpdating(report.id)"
+                class="text-base-content/50 flex items-center gap-1"
+              >
+                <span class="loading loading-spinner loading-xs"></span>
+                Atualizando...
+              </span>
+
+              <div class="dropdown dropdown-end">
+                <label
+                  tabindex="0"
+                  class="btn btn-ghost btn-xs gap-1"
+                  :class="{ 'btn-disabled': isUpdating(report.id) }"
+                >
+                  <span class="material-symbols-outlined text-sm">flag</span>
+                  <span class="hidden sm:inline">Atualizar status</span>
+                </label>
+                <ul
+                  tabindex="0"
+                  class="dropdown-content menu menu-xs p-2 shadow bg-base-100 rounded-box w-44 z-10"
+                >
+                  <li v-for="opt in statusOptions" :key="opt.value">
+                    <button
+                      type="button"
+                      class="flex justify-between items-center"
+                      @click="changeStatus(report, opt.value)"
+                    >
+                      <span>{{ opt.label }}</span>
+                      <span
+                        v-if="report.status?.toLowerCase() === opt.value"
+                        class="material-symbols-outlined text-[13px] text-primary"
+                      >
+                        check
+                      </span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <!-- FIM STATUS -->
         </div>
       </div>
 
@@ -206,8 +269,75 @@ const pageSize = ref(5)
 const hasMore = ref(true)
 
 const imageIndexes = reactive({})
-
 const openComments = reactive({})
+
+const updatingStatus = reactive({})
+
+const statusOptions = [
+  { value: 'pending', label: 'Pendente' },
+  { value: 'inprogress', label: 'Em andamento' },
+  { value: 'resolved', label: 'Resolvido' },
+  { value: 'inappropriate', label: 'Inapropriado' },
+  { value: 'dismissed', label: 'Descartado' },
+  { value: 'diactivated', label: 'Desativado' },
+]
+
+const isUpdating = (reportId) => !!updatingStatus[reportId]
+
+const formatStatus = (status) => {
+  if (!status) return 'Sem status'
+  const s = status.toLowerCase()
+  switch (s) {
+    case 'pending':
+      return 'Pendente'
+    case 'inprogress':
+      return 'Em andamento'
+    case 'resolved':
+      return 'Resolvido'
+    case 'inappropriate':
+      return 'Inapropriado'
+    case 'dismissed':
+      return 'Descartado'
+    case 'diactivated':
+      return 'Desativado'
+    default:
+      return status
+  }
+}
+
+const statusBadgeClass = (status) => {
+  if (!status) return 'badge-ghost'
+  const s = status.toLowerCase()
+  if (s === 'pending') return 'badge-warning'
+  if (s === 'inprogress') return 'badge-info'
+  if (s === 'resolved') return 'badge-success'
+  if (s === 'inappropriate' || s === 'dismissed' || s === 'diactivated') return 'badge-error'
+  return 'badge-ghost'
+}
+
+const changeStatus = async (report, newStatus) => {
+  if (!report || !report.id) return
+  if (isUpdating(report.id)) return
+
+  updatingStatus[report.id] = true
+  error.value = null
+
+  const oldStatus = report.status
+  report.status = newStatus
+
+  try {
+    await apiClient.put(`api/report/${report.id}/status`, { newStatus }, { auth: true })
+  } catch (err) {
+    console.error(err)
+    report.status = oldStatus
+    error.value =
+      err?.response?.data?.message ||
+      err?.message ||
+      'Não foi possível atualizar o status da denúncia.'
+  } finally {
+    updatingStatus[report.id] = false
+  }
+}
 
 const currentImageIndex = (reportId) => {
   return imageIndexes[reportId] ?? 0

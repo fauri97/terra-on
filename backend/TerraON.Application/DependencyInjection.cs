@@ -7,7 +7,9 @@ using TerraON.Application.UseCases.Comments.Create;
 using TerraON.Application.UseCases.ReportPosts.Create;
 using TerraON.Application.UseCases.ReportPosts.Get;
 using TerraON.Application.UseCases.ReportPosts.Update;
+using TerraON.Application.UseCases.Reports.ChangeStatus;
 using TerraON.Application.UseCases.Reports.Create;
+using TerraON.Application.UseCases.Reports.ExportPdf;
 using TerraON.Application.UseCases.Reports.Get;
 using TerraON.Application.UseCases.Reports.Like;
 using TerraON.Application.UseCases.Users.Get.All;
@@ -26,7 +28,7 @@ namespace TerraON.Application
         {
             AddAutoMapper(services);
             AddUseCases(services);
-            addServices(services);
+            AddServices(services);
         }
 
         private static void AddAutoMapper(IServiceCollection services)
@@ -34,7 +36,7 @@ namespace TerraON.Application
             services.AddAutoMapper(cfg => cfg.AddProfile<AutoMapping>(), typeof(AutoMapping).Assembly);
         }
 
-        private static void addServices(IServiceCollection services)
+        private static void AddServices(IServiceCollection services)
         {
             services.AddScoped<IPasswordService, PasswordService>();
         }
@@ -50,6 +52,8 @@ namespace TerraON.Application
 
             services.AddScoped<ICreateReportUseCase, CreateReportUseCase>();
             services.AddScoped<IGetReportUseCase, GetReportUseCase>();
+            services.AddScoped<IChangeStatusUseCase, ChangeStatusUseCase>();
+            services.AddScoped<IExportReportsPdfUseCase, ExportReportsPdfUseCase>();
             services.AddScoped<IToggleLikeUseCase, ToggleLikeUseCase>();
 
             services.AddScoped<ICreateCommentUseCase, CreateCommentUseCase>();

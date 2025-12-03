@@ -72,6 +72,7 @@ namespace TerraON.Application.UseCases.Reports.Get
                 CEP = r.CEP ?? string.Empty,
                 AuthorAvatar = BuildInline(r.Author),
                 LikeCount = r.Likes?.Count ?? 0,
+                Status = r.Status.ToString(),
                 Likes = [.. (r.Likes ?? [])
                     .Select(l => new LikesJson
                     {

@@ -43,6 +43,7 @@
         public string State { get; set; } = string.Empty;
         public string Bairro { get; set; } = string.Empty;
         public string CEP { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
 
         public InlineImageJson? AuthorAvatar { get; set; }   // avatar puro + contentType
         public List<LikesJson> Likes { get; set; } = [];
