@@ -29,24 +29,29 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 )
 
-function get(url, { params, auth = false } = {}) {
-  return api.get(url, { params, useAuth: auth })
+function get(url, options = {}) {
+  const { params, auth = false, ...rest } = options
+  return api.get(url, { params, useAuth: auth, ...rest })
 }
 
-function post(url, data, { params, auth = false } = {}) {
-  return api.post(url, data, { params, useAuth: auth })
+function post(url, data, options = {}) {
+  const { params, auth = false, ...rest } = options
+  return api.post(url, data, { params, useAuth: auth, ...rest })
 }
 
-function put(url, data, { params, auth = false } = {}) {
-  return api.put(url, data, { params, useAuth: auth })
+function put(url, data, options = {}) {
+  const { params, auth = false, ...rest } = options
+  return api.put(url, data, { params, useAuth: auth, ...rest })
 }
 
-function patch(url, data, { params, auth = false } = {}) {
-  return api.patch(url, data, { params, useAuth: auth })
+function patch(url, data, options = {}) {
+  const { params, auth = false, ...rest } = options
+  return api.patch(url, data, { params, useAuth: auth, ...rest })
 }
 
-function del(url, { params, auth = false } = {}) {
-  return api.delete(url, { params, useAuth: auth })
+function del(url, options = {}) {
+  const { params, auth = false, ...rest } = options
+  return api.delete(url, { params, useAuth: auth, ...rest })
 }
 
 export const apiClient = {

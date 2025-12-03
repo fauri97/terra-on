@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import AdminUsersView from '@/views/AdminUsersView.vue'
 import ReportsFeedView from '@/views/ReportsFeedView.vue'
 import PostReportView from '@/views/AdminPostReportsView.vue'
+import ReportsExportPage from '@/views/ReportsExportPage.vue'
 
 const AdminSettingsView = { template: '<div>Configurações (em breve)</div>' }
 
@@ -47,6 +48,12 @@ const routes = [
         name: 'users',
         component: AdminUsersView,
         meta: { requiresAuth: true, title: 'Usuários | TerraON' },
+      },
+      {
+        path: '/admin/reports/export',
+        name: 'ReportsExport',
+        component: ReportsExportPage,
+        meta: { requiresAuth: true, title: 'Relatórios | TerraON' },
       },
       {
         path: 'settings',
